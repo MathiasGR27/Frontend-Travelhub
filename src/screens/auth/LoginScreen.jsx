@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import InputField from "../../components/InputField";
+import PrimaryButton from "../../components/PrimaryButton";
 import api from "../../services/api";
 import { saveToken } from "../../services/token.service";
 import { COLORS } from "../../styles/constants/colors";
-import InputField from "../../components/InputField";
-import PrimaryButton from "../../components/PrimaryButton";
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,8 +19,15 @@ export default function LoginScreen() {
 
     try {
       setLoading(true);
-      const response = await api.post("/auth/login", { email, password });
-      await saveToken(response.data.token);
+
+      const { data } = await api.post("/auth/login", {
+        email,
+        password,
+      });
+
+      await saveToken(data.token);
+
+      navigation.replace("Home");
     } catch (error) {
       Alert.alert(
         "Error",
@@ -34,7 +41,6 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>TravelHub</Text>
-      <Text style={styles.subtitle}>Tu próxima aventura</Text>
 
       <View style={styles.card}>
         <InputField
@@ -45,9 +51,9 @@ export default function LoginScreen() {
 
         <InputField
           placeholder="Contraseña"
+          secureTextEntry
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
         />
 
         <PrimaryButton
@@ -55,6 +61,12 @@ export default function LoginScreen() {
           onPress={handleLogin}
           loading={loading}
         />
+
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          <Text style={styles.registerText}>
+            ¿No tienes cuenta? Regístrate
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -72,15 +84,17 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
     textAlign: "center",
-  },
-  subtitle: {
-    color: COLORS.lightGray,
-    textAlign: "center",
     marginBottom: 32,
   },
   card: {
     backgroundColor: COLORS.white,
     padding: 24,
     borderRadius: 20,
+  },
+  registerText: {
+    color: COLORS.primary,
+    textAlign: "center",
+    marginTop: 16,
+    fontWeight: "500",
   },
 });
