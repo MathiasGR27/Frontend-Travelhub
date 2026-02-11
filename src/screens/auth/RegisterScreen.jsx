@@ -1,141 +1,126 @@
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View, ScrollView } from "react-native";
 import InputField from "../../components/InputField";
 import PrimaryButton from "../../components/PrimaryButton";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 export default function RegisterScreen({ navigation }) {
-  const [name, setName] = useState("");
+  const [nombreCompleto, setNombreCompleto] = useState("");
+  const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rol, setRol] = useState("USER"); // 👈 rol por defecto
   const [loading, setLoading] = useState(false);
+  const [visible, setVisible] = useState(false);
+
+  const visiblePassword = () => {
+    setVisible(!visible);
+  };
 
   const handleRegister = async () => {
-    if (!name || !email || !password) {
-      Alert.alert("Error", "Completa todos los campos");
+    if (!nombreCompleto || !telefono || !email || !password) {
+      Alert.alert("Error", "Todos los campos son obligatorios");
       return;
     }
 
     try {
       setLoading(true);
-
       await api.post("/auth/register", {
-        nombre: name, // 👈 CLAVE: backend espera "nombre"
-        email,
-        password,
-        rol,
+        nombre_completo: nombreCompleto,
+        telefono: telefono,
+        email: email,
+        password: password,
       });
 
-      Alert.alert("Éxito", "Cuenta creada correctamente", [
-        {
-          text: "OK",
-          onPress: () => navigation.goBack(),
-        },
+      Alert.alert("¡Éxito!", "Cuenta creada correctamente", [
+        { text: "Ir al Login", onPress: () => navigation.navigate("Login") },
       ]);
     } catch (error) {
-      console.log("ERROR REGISTER 👉", error.response?.data || error.message);
-      Alert.alert(
-        "Error al registrar",
-        JSON.stringify(error.response?.data || error.message)
-      );
+      const msg = error.response?.data?.message || "Error al registrar";
+      Alert.alert("Error", msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.logo}>TravelHub</Text>
-      <Text style={styles.subtitle}>Crea tu cuenta</Text>
+      <Text style={styles.subtitle}>Crea tu cuenta de viajero</Text>
 
       <View style={styles.card}>
         <InputField
           placeholder="Nombre completo"
-          value={name}
-          onChangeText={setName}
+          value={nombreCompleto}
+          onChangeText={setNombreCompleto}
+        />
+
+        <InputField
+          placeholder="Teléfono móvil"
+          value={telefono}
+          onChangeText={setTelefono}
+          keyboardType="phone-pad"
         />
 
         <InputField
           placeholder="Correo electrónico"
           value={email}
           onChangeText={setEmail}
+          keyboardType="email-address"
         />
 
-        <InputField
-          placeholder="Contraseña"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        {/* ===== SELECTOR DE ROL ===== */}
-        <Text style={styles.roleLabel}>Tipo de cuenta</Text>
-
-        <View style={styles.roleContainer}>
+        <View style={styles.passwordWrapper}>
+          <InputField
+            placeholder="Contraseña"
+            secureTextEntry={!visible} 
+            value={password}
+            onChangeText={setPassword}
+          />
           <TouchableOpacity
-            style={[
-              styles.roleButton,
-              rol === "USER" && styles.roleActive,
-            ]}
-            onPress={() => setRol("USER")}
+            onPress={visiblePassword}
+            style={styles.eyeButton}
           >
-            <Text
-              style={[
-                styles.roleText,
-                rol === "USER" && styles.roleTextActive,
-              ]}
-            >
-              Usuario
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.roleButton,
-              rol === "ADMIN" && styles.roleActive,
-            ]}
-            onPress={() => setRol("ADMIN")}
-          >
-            <Text
-              style={[
-                styles.roleText,
-                rol === "ADMIN" && styles.roleTextActive,
-              ]}
-            >
-              Admin
-            </Text>
+            <AntDesign
+              name={visible ? "eye" : "eye-invisible"}
+              size={20}
+              color="#666"
+            />
           </TouchableOpacity>
         </View>
 
-        <PrimaryButton
-          title="Registrarse"
-          onPress={handleRegister}
-          loading={loading}
-        />
+        <View style={styles.buttonContainer}>
+          <PrimaryButton
+            title="Registrarse ahora"
+            onPress={handleRegister}
+            loading={loading}
+          />
+        </View>
 
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.loginText}>
-            ¿Ya tienes cuenta? Inicia sesión
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()} 
+          activeOpacity={0.7}
+          style={styles.footerClickable}
+        >
+          <Text style={styles.footerText}>
+            ¿Ya tienes cuenta? <Text style={styles.loginLink}>Inicia sesión</Text>
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
-/* ================== ESTILOS ================== */
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: COLORS.primaryDark,
     justifyContent: "center",
     padding: 24,
   },
   logo: {
     color: COLORS.white,
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: "bold",
     textAlign: "center",
   },
@@ -143,48 +128,44 @@ const styles = StyleSheet.create({
     color: COLORS.lightGray,
     textAlign: "center",
     marginBottom: 32,
+    fontSize: 16,
+    opacity: 0.8,
   },
   card: {
     backgroundColor: COLORS.white,
     padding: 24,
-    borderRadius: 20,
+    borderRadius: 24,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
-  loginText: {
-    color: COLORS.primary,
-    textAlign: "center",
-    marginTop: 16,
-    fontWeight: "500",
+  // ESTILOS PARA EL OJO
+  passwordWrapper: {
+    width: '100%',
+    position: 'relative',
+    justifyContent: 'center', 
   },
-
-  /* ===== ROLES ===== */
-  roleLabel: {
-    marginTop: 16,
-    marginBottom: 8,
-    fontWeight: "600",
-    color: COLORS.primaryDark,
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    top: 15, 
+    zIndex: 2,
   },
-  roleContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 20,
+  buttonContainer: {
+    marginTop: 10,
   },
-  roleButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    marginHorizontal: 5,
+  footerClickable: {
+    marginTop: 20,
     alignItems: "center",
   },
-  roleActive: {
-    backgroundColor: COLORS.primary,
+  footerText: {
+    fontSize: 14,
+    color: "#6B7280",
   },
-  roleText: {
+  loginLink: {
     color: COLORS.primary,
-    fontWeight: "600",
-  },
-  roleTextActive: {
-    color: COLORS.white,
+    fontWeight: "700",
   },
 });

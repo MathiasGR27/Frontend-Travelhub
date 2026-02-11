@@ -8,16 +8,22 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadSession = async () => {
-      const token = await AsyncStorage.getItem("token");
-      const userData = await AsyncStorage.getItem("user");
-      if (token && userData) {
-        setUser(JSON.parse(userData));
-      }
-      setLoading(false);
-    };
-    loadSession();
-  }, []);
+      const loadSession = async () => {
+        try {
+          const token = await AsyncStorage.getItem("token");
+          const userData = await AsyncStorage.getItem("user");
+          
+          if (token && userData) {
+            setUser(JSON.parse(userData));
+          }
+        } catch (error) {
+          console.error("Error cargando la sesión:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadSession();
+    }, []);
 
   const login = async (token, userData) => {
     await AsyncStorage.setItem("token", token);

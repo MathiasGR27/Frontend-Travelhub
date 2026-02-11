@@ -1,130 +1,168 @@
-import { useEffect, useState, useContext } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
+import React, { useState, useEffect } from "react";
+import { 
+  View, Text, StyleSheet, TextInput, FlatList, 
+  TouchableOpacity, ActivityIndicator, ScrollView 
 } from "react-native";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
-import { AuthContext } from "../../context/AuthContext";
 
 export default function BuscarVuelosScreen({ navigation }) {
   const [vuelos, setVuelos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { logout } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
+  
+  // ESTADOS PARA LOS FILTROS DEL BACKEND
+  const [origen, setOrigen] = useState("");
+  const [destino, setDestino] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [minPrecio, setMinPrecio] = useState("");
+  const [maxPrecio, setMaxPrecio] = useState("");
 
-  const cargarVuelos = async () => {
+  useEffect(() => {
+    handleBuscar(); // Carga inicial sin filtros
+  }, []);
+
+  const handleBuscar = async () => {
+    
     try {
-      const { data } = await api.get("/vuelos");
-      setVuelos(data);
+      setLoading(true);
+      
+      // Preparamos los query params exactamente como los pide tu controller
+      const params = {
+        origen: origen.trim() || undefined,
+        destino: destino.trim() || undefined,
+        fecha: fecha.trim() || undefined,
+        minPrecio: minPrecio || undefined,
+        maxPrecio: maxPrecio || undefined
+      };
+
+      const response = await api.get("/vuelos/buscar", { params });
+      setVuelos(response.data);
     } catch (error) {
-      console.log(error.response?.data || error.message);
+      console.error("Error buscando vuelos:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    cargarVuelos();
-  }, []);
-
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+  const renderVuelo = ({ item }) => (
+    <TouchableOpacity 
+      style={styles.card}
+      onPress={() => navigation.navigate("Pasajero", { vuelo: item })}
+    >
+      <View style={styles.cardRow}>
+        <Text style={styles.ciudades}>{item.origen} ➔ {item.destino}</Text>
+        <Text style={styles.precio}>${item.precio}</Text>
       </View>
-    );
-  }
+      <View style={styles.divider} />
+      <Text style={styles.detalles}>📅 {item.fecha_salida}  •  ⏰ {item.hora_salida}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Vuelos disponibles</Text>
-        <TouchableOpacity onPress={logout}>
-          <Text style={styles.logout}>Salir</Text>
+      <Text style={styles.title}>Explorar Vuelos</Text>
+
+      {/* SECCIÓN DE FILTROS SEPARADOS */}
+      <View style={styles.filterSection}>
+        <TextInput 
+          style={styles.inputFull} 
+          placeholder="Ciudad de Origen" 
+          value={origen}
+          onChangeText={setOrigen}
+        />
+        <TextInput 
+          style={styles.inputFull} 
+          placeholder="Ciudad de Destino" 
+          value={destino}
+          onChangeText={setDestino}
+        />
+        
+        <View style={styles.row}>
+           <TextInput 
+            style={[styles.inputHalf, { flex: 2 }]} 
+            placeholder="Fecha" 
+            value={fecha}
+            onChangeText={setFecha}
+          />
+          {/* Inputs de Precio Separados */}
+          <TextInput 
+            style={styles.inputHalf} 
+            placeholder="Min $" 
+            keyboardType="numeric"
+            value={minPrecio}
+            onChangeText={setMinPrecio}
+          />
+          <TextInput 
+            style={styles.inputHalf} 
+            placeholder="Max $" 
+            keyboardType="numeric"
+            value={maxPrecio}
+            onChangeText={setMaxPrecio}
+          />
+        </View>
+
+        <TouchableOpacity style={styles.btnBuscar} onPress={handleBuscar}>
+          <Text style={styles.btnText}>🔍 Aplicar Filtros</Text>
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={vuelos}
-        keyExtractor={(item) => item.id_vuelo.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.route}>
-              {item.origen} → {item.destino}
-            </Text>
-            <Text>Fecha: {item.fecha_salida}</Text>
-            <Text style={styles.price}>$ {item.precio}</Text>
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() =>
-                navigation.navigate("Pasajero", { vuelo: item })
-              }
-            >
-              <Text style={styles.buttonText}>Reservar</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 20 }} />
+      ) : (
+        <FlatList
+          data={vuelos}
+          keyExtractor={(item) => item.id_vuelo.toString()}
+          renderItem={renderVuelo}
+          ListEmptyComponent={
+            <Text style={styles.empty}>No hay vuelos que coincidan con tu búsqueda.</Text>
+          }
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.primaryDark,
-    padding: 16,
+  container: { flex: 1, backgroundColor: COLORS.primaryDark, padding: 20 },
+  title: { color: 'white', fontSize: 24, fontWeight: 'bold', marginTop: 40, marginBottom: 15 },
+  filterSection: { 
+    backgroundColor: 'rgba(255,255,255,0.05)', 
+    padding: 15, 
+    borderRadius: 20, 
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)'
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
+  inputFull: { 
+    backgroundColor: 'white', 
+    borderRadius: 10, 
+    padding: 12, 
+    marginBottom: 10,
+    fontSize: 14 
   },
-  title: {
-    color: COLORS.white,
-    fontSize: 22,
-    fontWeight: "bold",
+  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
+  inputHalf: { 
+    backgroundColor: 'white', 
+    borderRadius: 10, 
+    padding: 12, 
+    flex: 1, 
+    marginHorizontal: 2,
+    fontSize: 13
   },
-  logout: {
-    color: COLORS.lightGray,
-    fontWeight: "bold",
+  btnBuscar: { 
+    backgroundColor: COLORS.primary, 
+    padding: 15, 
+    borderRadius: 12, 
+    alignItems: 'center',
+    elevation: 3
   },
-  card: {
-    backgroundColor: COLORS.white,
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 12,
-  },
-  route: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  price: {
-    marginTop: 6,
-    fontWeight: "bold",
-    color: COLORS.primary,
-  },
-  button: {
-    marginTop: 10,
-    backgroundColor: COLORS.primary,
-    padding: 10,
-    borderRadius: 10,
-  },
-  buttonText: {
-    color: COLORS.white,
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.primaryDark,
-  },
+  btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  card: { backgroundColor: 'white', padding: 18, borderRadius: 15, marginBottom: 15 },
+  cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  ciudades: { fontSize: 17, fontWeight: 'bold', color: COLORS.primaryDark },
+  precio: { fontSize: 19, fontWeight: 'bold', color: '#10B981' },
+  divider: { height: 1, backgroundColor: '#F3F4F6', marginVertical: 10 },
+  detalles: { color: '#6B7280', fontSize: 13 },
+  empty: { color: 'white', textAlign: 'center', marginTop: 30, opacity: 0.5 }
 });
