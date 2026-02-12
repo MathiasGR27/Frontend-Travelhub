@@ -98,7 +98,7 @@ export default function ReservaAgregadaScreen({ route, navigation }) {
 
           <View style={{ marginTop: 30 }}>
             <PrimaryButton
-              title={`Pagar $${precioTotal.toFixed(2)}`}
+              title={`Reservar Vuelo a $${precioTotal.toFixed(2)}`}
               onPress={confirmarReserva}
               loading={loading}
             />

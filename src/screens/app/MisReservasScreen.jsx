@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import QRCode from 'react-native-qrcode-svg';
-import { useQuery } from '@tanstack/react-query'; // Hook de React Query
+import { useQuery } from '@tanstack/react-query'; 
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
@@ -23,23 +23,29 @@ export default function MisReservasScreen({ navigation }) {
   const [qrSeleccionado, setQrSeleccionado] = useState(null);
   const { logout } = useContext(AuthContext);
 
-  // 1. CONFIGURACIÓN DE REACT QUERY (Persistencia Offline Automática)
+  // 1. CONFIGURACIÓN DE REACT QUERY
   const { 
     data: reservas = [], 
     isLoading, 
     isRefetching, 
     refetch 
   } = useQuery({
-    queryKey: ['mis-reservas'], // Identificador único en el "baúl"
+    queryKey: ['mis-reservas'],
     queryFn: async () => {
       const { data } = await api.get("/reservas/mis-reservas");
       return data;
     },
   });
 
-  // Manejo del botón físico de atrás
+  // 2. ACTUALIZACIÓN AUTOMÁTICA AL ENTRAR A LA PANTALLA
   useFocusEffect(
     useCallback(() => {
+      // Pequeño truco: esperamos 500ms antes de pedir los datos 
+      // para asegurar que el backend terminó de procesar todo.
+      const timeout = setTimeout(() => {
+        refetch();
+      }, 500);
+
       const onBackPress = () => {
         navigation.reset({
           index: 0,
@@ -48,8 +54,12 @@ export default function MisReservasScreen({ navigation }) {
         return true;
       };
       const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-      return () => subscription.remove();
-    }, [navigation])
+      
+      return () => {
+        clearTimeout(timeout);
+        subscription.remove();
+      };
+    }, [navigation, refetch])
   );
 
   const abrirTicket = (reserva) => {
@@ -61,7 +71,6 @@ export default function MisReservasScreen({ navigation }) {
     navigation.reset({ index: 0, routes: [{ name: "Home" }] });
   };
 
-  // Pantalla de carga (Solo la primera vez que se instala la app)
   if (isLoading && !isRefetching) {
     return (
       <View style={styles.center}>
@@ -137,8 +146,9 @@ export default function MisReservasScreen({ navigation }) {
 
               <View style={styles.footerCard}>
                 <View>
-                  <Text style={styles.totalLabel}>Total Pagado:</Text>
-                  <Text style={styles.price}>$ {item.total}</Text>
+                  <Text style={styles.totalLabel}>{item.estado === 'PAGADA' ? 'Total Pagado:' : 'Total a Pagar:'}</Text>
+                  {/* PRECIO FORMATEADO CON DECIMALES */}
+                  <Text style={styles.price}>$ {parseFloat(item.total).toFixed(2)}</Text>
                 </View>
 
                 {item.estado === 'PENDIENTE' ? (
@@ -162,7 +172,7 @@ export default function MisReservasScreen({ navigation }) {
         />
       )}
 
-      {/* MODAL QR (Funciona Offline porque el código ya está en la data) */}
+      {/* MODAL QR */}
       <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -232,7 +242,6 @@ const styles = StyleSheet.create({
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: COLORS.white, fontSize: 16, marginBottom: 20, opacity: 0.7 },
   btnExplorar: { backgroundColor: COLORS.primary, padding: 18, borderRadius: 20 },
-
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
   modalContent: { backgroundColor: 'white', width: '85%', padding: 25, borderRadius: 32, alignItems: 'center' },
   modalTitle: { fontSize: 24, fontWeight: 'bold', color: COLORS.primaryDark, marginBottom: 5 },
