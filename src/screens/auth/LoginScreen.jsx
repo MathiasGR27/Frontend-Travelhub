@@ -94,7 +94,7 @@ export default function LoginScreen({ navigation }) {
               style={styles.eyeButton}
             >
               <AntDesign
-                name={visible ? "eye" : "eyeo"}
+                name={visible ? "eye" : "eye-invisible"}
                 size={20}
                 color="#666"
               />
