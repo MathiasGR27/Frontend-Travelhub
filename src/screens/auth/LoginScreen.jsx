@@ -1,5 +1,14 @@
 import { useState, useContext } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { 
+  Alert, 
+  StyleSheet, 
+  Text, 
+  TouchableOpacity, 
+  View, 
+  KeyboardAvoidingView, 
+  Platform, 
+  ScrollView 
+} from "react-native";
 import InputField from "../../components/InputField";
 import PrimaryButton from "../../components/PrimaryButton";
 import api from "../../services/api";
@@ -18,7 +27,6 @@ export default function LoginScreen({ navigation }) {
     setVisible(!visible);
   };
 
-
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Atención", "Por favor, ingresa tu correo y contraseña");
@@ -27,13 +35,11 @@ export default function LoginScreen({ navigation }) {
 
     try {
       setLoading(true);
-
       const { data } = await api.post("/auth/login", {
-        email: email.trim(), // Limpiamos espacios accidentales
+        email: email.trim(),
         password,
       });
 
-      // Guardamos el token y los datos del usuario (id_usuario, nombre, rol, puntos)
       await login(data.token, data.usuario);
 
     } catch (error) {
@@ -49,34 +55,46 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      // FIX: Fondo oscuro aquí para evitar el cuadro blanco al subir el teclado
+      style={{ flex: 1, backgroundColor: COLORS.primaryDark }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
     >
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        // FIX: Asegurar que el ScrollView no tenga fondo blanco por defecto
+        style={{ backgroundColor: COLORS.primaryDark }}
+        contentContainerStyle={styles.container} 
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.logo}>TravelHub</Text>
         <Text style={styles.subtitle}>¡Listo para Viajar!</Text>
 
         <View style={styles.card}>
           <InputField
             placeholder="Correo electrónico"
+            placeholderTextColor="#888" // FIX: Visibilidad del placeholder
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
+            style={{ color: "#000" }} // FIX: Texto negro sobre fondo blanco
           />
 
           <View style={styles.passwordWrapper}>
             <InputField
               placeholder="Contraseña"
+              placeholderTextColor="#888" // FIX: Visibilidad del placeholder
               secureTextEntry={!visible}
               value={password}
               onChangeText={setPassword}
+              style={{ color: "#000" }} // FIX: Texto negro sobre fondo blanco
             />
             <TouchableOpacity
               onPress={visiblePassword}
               style={styles.eyeButton}
             >
               <AntDesign
-                name={visible ? "eye" : "eye-invisible"}
+                name={visible ? "eye" : "eyeo"}
                 size={20}
                 color="#666"
               />
@@ -130,15 +148,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     padding: 24,
     borderRadius: 24,
-    // Sombra para iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    // Elevación para Android
     elevation: 5,
   },
-  // ESTILOS PARA EL OJO
   passwordWrapper: {
     width: '100%',
     position: 'relative',
@@ -159,7 +174,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: COLORS.textGray || "#6B7280",
+    color: "#6B7280",
   },
   registerLink: {
     color: COLORS.primary,
