@@ -10,8 +10,6 @@ export default function ValidarQRScreen() {
   const [loading, setLoading] = useState(false);
   const [scanned, setScanned] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
-
-  // NUEVO: Estado para guardar la respuesta del Back
   const [datosReserva, setDatosReserva] = useState(null);
 
   const [permission, requestPermission] = useCameraPermissions();
@@ -20,7 +18,6 @@ export default function ValidarQRScreen() {
     setScanned(true);
     setIsCameraActive(false);
     setCodigo(data);
-    // Ejecutamos la validación automáticamente al escanear
     validarCodigo(data);
   };
 
@@ -30,15 +27,11 @@ export default function ValidarQRScreen() {
 
     try {
       setLoading(true);
-      setDatosReserva(null); // Limpiamos búsqueda anterior
-
+      setDatosReserva(null);
       const response = await api.get(`/admin/validar-qr/${cod}`);
-
-      // Guardamos todo el JSON que mandaste del back
       setDatosReserva(response.data);
-
     } catch (error) {
-      Alert.alert("❌ Error", error.response?.data?.message || "Código inválido");
+      Alert.alert(" Error", error.response?.data?.message || "Código inválido");
     } finally {
       setLoading(false);
     }
@@ -73,6 +66,7 @@ export default function ValidarQRScreen() {
           <TextInput
             style={styles.input}
             placeholder="Código manual"
+            placeholderTextColor="#888" 
             value={codigo}
             onChangeText={setCodigo}
             autoCapitalize="characters"
@@ -82,7 +76,6 @@ export default function ValidarQRScreen() {
         </View>
       )}
 
-      {/* --- RENDERIZADO DE LOS DETALLES DEL BACKEND --- */}
       {datosReserva && (
         <View style={styles.infoCard}>
           <View style={styles.successBadge}>
@@ -130,13 +123,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryDark, padding: 20 },
   title: { color: 'white', fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginTop: 40, marginBottom: 20 },
   cameraContainer: { height: 300, borderRadius: 20, overflow: 'hidden', marginBottom: 20 },
-  input: { backgroundColor: 'white', borderRadius: 10, padding: 15, marginBottom: 15, textAlign: 'center', fontWeight: 'bold' },
+  input: { 
+    backgroundColor: 'white', 
+    borderRadius: 10, 
+    padding: 15, 
+    marginBottom: 15, 
+    textAlign: 'center', 
+    fontWeight: 'bold',
+    color: '#000' // <-- CORREGIDO
+  },
   scanToggleBtn: { backgroundColor: COLORS.primary, padding: 15, borderRadius: 10, alignItems: 'center', marginBottom: 15 },
   scanToggleText: { color: 'white', fontWeight: 'bold' },
   cancelButton: { position: 'absolute', bottom: 10, alignSelf: 'center', backgroundColor: 'red', padding: 8, borderRadius: 5 },
   cancelButtonText: { color: 'white', fontSize: 12 },
-
-  // Estilos de la Tarjeta de Información
   infoCard: { backgroundColor: 'white', borderRadius: 20, padding: 20, marginTop: 25 },
   successBadge: { backgroundColor: '#D1FAE5', alignSelf: 'center', paddingHorizontal: 15, paddingVertical: 5, borderRadius: 20, marginBottom: 15 },
   successText: { color: '#065F46', fontWeight: 'bold', fontSize: 12 },

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   View, Text, StyleSheet, TextInput, FlatList,
-  TouchableOpacity, ActivityIndicator, ScrollView
+  TouchableOpacity, ActivityIndicator
 } from "react-native";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
@@ -10,7 +10,6 @@ export default function BuscarVuelosScreen({ navigation }) {
   const [vuelos, setVuelos] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ESTADOS PARA LOS FILTROS DEL BACKEND
   const [origen, setOrigen] = useState("");
   const [destino, setDestino] = useState("");
   const [fecha, setFecha] = useState("");
@@ -18,15 +17,12 @@ export default function BuscarVuelosScreen({ navigation }) {
   const [maxPrecio, setMaxPrecio] = useState("");
 
   useEffect(() => {
-    handleBuscar(); // Carga inicial sin filtros
+    handleBuscar();
   }, []);
 
   const handleBuscar = async () => {
-
     try {
       setLoading(true);
-
-      // Preparamos los query params exactamente como los pide tu controller
       const params = {
         origen: origen.trim() || undefined,
         destino: destino.trim() || undefined,
@@ -34,7 +30,6 @@ export default function BuscarVuelosScreen({ navigation }) {
         minPrecio: minPrecio || undefined,
         maxPrecio: maxPrecio || undefined
       };
-
       const response = await api.get("/vuelos/buscar", { params });
       setVuelos(response.data);
     } catch (error) {
@@ -62,17 +57,18 @@ export default function BuscarVuelosScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Explorar Vuelos</Text>
 
-      {/* SECCIÓN DE FILTROS SEPARADOS */}
       <View style={styles.filterSection}>
         <TextInput
           style={styles.inputFull}
           placeholder="Ciudad de Origen"
+          placeholderTextColor="#888" 
           value={origen}
           onChangeText={setOrigen}
         />
         <TextInput
           style={styles.inputFull}
           placeholder="Ciudad de Destino"
+          placeholderTextColor="#888" 
           value={destino}
           onChangeText={setDestino}
         />
@@ -81,13 +77,14 @@ export default function BuscarVuelosScreen({ navigation }) {
           <TextInput
             style={[styles.inputHalf, { flex: 2 }]}
             placeholder="Fecha"
+            placeholderTextColor="#888" 
             value={fecha}
             onChangeText={setFecha}
           />
-          {/* Inputs de Precio Separados */}
           <TextInput
             style={styles.inputHalf}
             placeholder="Min $"
+            placeholderTextColor="#888"
             keyboardType="numeric"
             value={minPrecio}
             onChangeText={setMinPrecio}
@@ -95,6 +92,7 @@ export default function BuscarVuelosScreen({ navigation }) {
           <TextInput
             style={styles.inputHalf}
             placeholder="Max $"
+            placeholderTextColor="#888"
             keyboardType="numeric"
             value={maxPrecio}
             onChangeText={setMaxPrecio}
@@ -139,7 +137,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     marginBottom: 10,
-    fontSize: 14
+    fontSize: 14,
+    color: '#000' // <-- CORREGIDO
   },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
   inputHalf: {
@@ -148,7 +147,8 @@ const styles = StyleSheet.create({
     padding: 12,
     flex: 1,
     marginHorizontal: 2,
-    fontSize: 13
+    fontSize: 13,
+    color: '#000' // <-- CORREGIDO
   },
   btnBuscar: {
     backgroundColor: COLORS.primary,
