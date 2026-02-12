@@ -132,6 +132,7 @@ export default function GestionReservasScreen() {
       <TextInput
         style={styles.searchBar}
         placeholder="Buscar por cliente, destino o ID..."
+        placeholderTextColor="#888"
         value={busqueda}
         onChangeText={handleSearch}
       />
