@@ -35,7 +35,6 @@ export default function MisReservasScreen({ navigation }) {
       const { data } = await api.get("/reservas/mis-reservas");
       return data;
     },
-    // Si falla (ej. no hay internet), React Query ya tiene los datos guardados en el persister
   });
 
   // Manejo del botón físico de atrás
@@ -125,7 +124,7 @@ export default function MisReservasScreen({ navigation }) {
               <Text style={styles.date}>
                 📅 {item.vuelo?.fecha_salida || item.vuelo?.fecha} | ⏰ {item.vuelo?.hora_salida || item.vuelo?.hora}
               </Text>
-              
+
               <View style={styles.divider} />
 
               <Text style={styles.sectionTitle}>Pasajeros:</Text>

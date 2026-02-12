@@ -1,28 +1,29 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { 
-  Alert, 
-  ScrollView, 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
-  View, 
-  Image,
-  Dimensions 
+  Alert, ScrollView, StyleSheet, Text, TouchableOpacity, 
+  View, Image, ActivityIndicator 
 } from "react-native";
 import * as ImagePicker from 'expo-image-picker';
-import { AuthContext } from "../../context/AuthContext";
+import { AuthContext } from "../../context/AuthContext"; // Importante
 import { COLORS } from "../../styles/constants/colors";
-
-const { width } = Dimensions.get('window');
+import api from "../../services/api"; 
 
 export default function PerfilScreen({ navigation }) {
-  const { user, logout } = useContext(AuthContext);
+  // Extraemos actualizarDatosUsuario del contexto
+  const { user, logout, actualizarDatosUsuario } = useContext(AuthContext);
   const [image, setImage] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (user?.foto) {
+      setImage(user.foto);
+    }
+  }, [user]);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert("Permisos", "Necesitamos acceso a tu galería para cambiar la foto.");
+      Alert.alert("Permisos", "Necesitamos acceso a la galería.");
       return;
     }
 
@@ -34,13 +35,72 @@ export default function PerfilScreen({ navigation }) {
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
-      // Aquí iría tu lógica de subir a la API: api.post('/user/avatar', formData...)
+      subirFoto(result.assets[0].uri);
     }
   };
 
+  const subirFoto = async (uri) => {
+    const userId = user?.id;
+
+    if (!userId) {
+      Alert.alert("Error", "No se encontró el ID del usuario.");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append('foto', {
+        uri: uri,
+        name: `avatar_${userId}.jpg`,
+        type: 'image/jpeg',
+      });
+
+      const { data } = await api.post(`/usuarios/update-avatar/${userId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      if (data.foto) {
+        // 1. Actualizamos el estado local de esta pantalla
+        setImage(data.foto);
+        
+        // 2. ACTUALIZAMOS EL CONTEXTO GLOBAL Y ASYNCSTORAGE
+        // Esto hace que la foto no se borre al navegar o reiniciar
+        await actualizarDatosUsuario({ foto: data.foto });
+
+        Alert.alert("Éxito", "Foto de perfil actualizada correctamente.");
+      }
+    } catch (error) {
+      console.error("Error subida:", error);
+      Alert.alert("Error", "No se pudo subir la imagen al servidor.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const renderAvatar = () => {
+    // Si hay imagen en el estado local o en el usuario del contexto
+    const imagenAMostrar = image || user?.foto;
+
+    if (imagenAMostrar) {
+      return (
+        <Image 
+          source={{ uri: `${imagenAMostrar}?t=${new Date().getTime()}` }} 
+          style={styles.avatarImage} 
+        />
+      );
+    }
+    
+    const inicial = user?.nombre ? user.nombre.charAt(0).toUpperCase() : "U";
+    return (
+      <View style={styles.avatarPlaceholder}>
+        <Text style={styles.avatarInitial}>{inicial}</Text>
+      </View>
+    );
+  };
+
   const handleLogout = () => {
-    Alert.alert("Cerrar Sesión", "¿Estás seguro de que quieres salir?", [
+    Alert.alert("Cerrar Sesión", "¿Deseas salir?", [
       { text: "Cancelar", style: "cancel" },
       { text: "Salir", onPress: logout, style: "destructive" },
     ]);
@@ -48,258 +108,84 @@ export default function PerfilScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* HEADER FIJO (No se mueve con el scroll) */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtnContainer} onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtnText}>←</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Text style={{color: 'white', fontSize: 20}}>←</Text>
         </TouchableOpacity>
-        <View style={styles.titleContainer}>
-          <Text style={styles.logo}>Mi Perfil</Text>
-          <Text style={styles.subtitle}>Gestiona tu información personal</Text>
-        </View>
+        <Text style={styles.logo}>Mi Perfil</Text>
       </View>
 
-      {/* CONTENIDO DESLIZABLE */}
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        overScrollMode="never"
-      >
-        {/* AVATAR SECTION */}
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        
         <View style={styles.avatarSection}>
-          <TouchableOpacity onPress={pickImage} activeOpacity={0.8}>
+          <TouchableOpacity onPress={pickImage} disabled={uploading}>
             <View style={styles.avatarWrapper}>
-              {image || user?.foto ? (
-                <Image source={{ uri: image || user?.foto }} style={styles.avatarImage} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarInitial}>
-                    {user?.nombre ? user.nombre.charAt(0).toUpperCase() : "U"}
-                  </Text>
-                </View>
-              )}
+              {renderAvatar()}
               <View style={styles.editBadge}>
-                <Text style={{ fontSize: 14 }}>📸</Text>
+                {uploading ? (
+                  <ActivityIndicator size="small" color={COLORS.primary}/>
+                ) : (
+                  <Text style={{ fontSize: 16 }}>📸</Text>
+                )}
               </View>
             </View>
           </TouchableOpacity>
-          <Text style={styles.userName}>{user?.nombre || "Usuario"}</Text>
+          <Text style={styles.userName}>{user?.nombre || "Usuario TravelHub"}</Text>
           <Text style={styles.userRoleBadge}>{user?.rol || 'EXPLORADOR'}</Text>
         </View>
 
-        {/* INFO CARD */}
+        {user?.rol === "USER" && (
+          <View style={styles.pointsCard}>
+            <Text style={styles.pointsTitle}>Mis Puntos Acumulados</Text>
+            <Text style={styles.pointsValue}>{user?.puntos || 0} ✨</Text>
+          </View>
+        )}
+
         <View style={styles.card}>
-          <Text style={styles.cardSectionTitle}>Datos de contacto</Text>
-          
+          <Text style={styles.cardSectionTitle}>Información de la cuenta</Text>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Email</Text>
+            <Text style={styles.infoLabel}>Correo Electrónico</Text>
             <Text style={styles.infoValue}>{user?.email}</Text>
           </View>
-          
           <View style={styles.divider} />
-          
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Teléfono Móvil</Text>
+            <Text style={styles.infoLabel}>Teléfono de Contacto</Text>
             <Text style={styles.infoValue}>{user?.telefono || "No disponible"}</Text>
           </View>
         </View>
 
-        {/* SECCIÓN DE PUNTOS (Solo para USER) */}
-        {user?.rol === "USER" && (
-          <View style={[styles.card, styles.pointsCard]}>
-            <Text style={styles.pointsTitle}>Mis Puntos TravelHub</Text>
-            <Text style={styles.pointsValue}>{user?.puntos || 0} ✨</Text>
-            <Text style={styles.pointsSubText}>Úsalos para obtener descuentos en tus vuelos</Text>
-          </View>
-        )}
-
-        {/* BOTÓN CERRAR SESIÓN */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
         </TouchableOpacity>
-
-        {/* ESPACIADOR EXTRA AL FINAL */}
-        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
 }
 
+// ... (Los estilos se mantienen iguales)
 const styles = StyleSheet.create({
-  container: {
-    flex: 1, // Fundamental para que el ScrollView funcione
-    backgroundColor: COLORS.primaryDark,
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.primaryDark,
-    zIndex: 10,
-  },
-  backBtnContainer: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    width: 45,
-    height: 45,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  backBtnText: {
-    color: COLORS.white,
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  titleContainer: {
-    flex: 1,
-  },
-  logo: {
-    color: COLORS.white,
-    fontSize: 28,
-    fontWeight: "bold",
-  },
-  subtitle: {
-    color: COLORS.white,
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 40, // Espacio suficiente para ver el botón de logout
-    alignItems: "center",
-  },
-  avatarSection: {
-    alignItems: "center",
-    marginVertical: 20,
-  },
-  avatarWrapper: {
-    position: 'relative',
-    marginBottom: 16,
-  },
-  avatarPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: COLORS.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 4,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  avatarImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: COLORS.primary,
-  },
-  avatarInitial: {
-    color: COLORS.white,
-    fontSize: 48,
-    fontWeight: "bold",
-  },
-  editBadge: {
-    position: 'absolute',
-    bottom: 5,
-    right: 5,
-    backgroundColor: COLORS.white,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-  },
-  userName: {
-    color: COLORS.white,
-    fontSize: 26,
-    fontWeight: "bold",
-  },
-  userRoleBadge: {
-    color: COLORS.primary,
-    fontWeight: "800",
-    fontSize: 12,
-    marginTop: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  card: {
-    backgroundColor: COLORS.white,
-    width: "100%",
-    borderRadius: 28,
-    padding: 24,
-    marginBottom: 20,
-    elevation: 4,
-  },
-  cardSectionTitle: {
-    fontSize: 11,
-    color: "#9CA3AF",
-    fontWeight: "800",
-    textTransform: 'uppercase',
-    marginBottom: 16,
-    letterSpacing: 1,
-  },
-  infoRow: {
-    paddingVertical: 4,
-  },
-  infoLabel: {
-    color: "#6B7280",
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  infoValue: {
-    color: COLORS.primaryDark,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#F3F4F6",
-    marginVertical: 12,
-  },
-  pointsCard: {
-    backgroundColor: "#1E293B",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-  },
-  pointsTitle: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  pointsValue: {
-    color: COLORS.primary,
-    fontSize: 42,
-    fontWeight: "900",
-    marginVertical: 8,
-  },
-  pointsSubText: {
-    color: COLORS.white,
-    fontSize: 12,
-    opacity: 0.6,
-    textAlign: 'center',
-  },
-  logoutButton: {
-    width: "100%",
-    padding: 20,
-    borderRadius: 24,
-    backgroundColor: "rgba(239, 68, 68, 0.1)", 
-    alignItems: "center",
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.2)",
-  },
-  logoutButtonText: {
-    color: "#F87171",
-    fontWeight: "800",
-    fontSize: 16,
-    textTransform: 'uppercase',
-  },
+  container: { flex: 1, backgroundColor: COLORS.primaryDark },
+  header: { paddingTop: 60, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' },
+  backBtn: { backgroundColor: 'rgba(255,255,255,0.1)', padding: 12, borderRadius: 12, marginRight: 15 },
+  logo: { color: 'white', fontSize: 26, fontWeight: 'bold' },
+  scrollContent: { alignItems: 'center', paddingBottom: 40 },
+  avatarSection: { marginVertical: 20, alignItems: 'center' },
+  avatarWrapper: { position: 'relative' },
+  avatarImage: { width: 130, height: 130, borderRadius: 65, borderWidth: 4, borderColor: COLORS.primary },
+  avatarPlaceholder: { width: 130, height: 130, borderRadius: 65, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
+  avatarInitial: { color: 'white', fontSize: 55, fontWeight: 'bold' },
+  editBadge: { position: 'absolute', bottom: 5, right: 5, backgroundColor: 'white', width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', elevation: 5 },
+  userName: { color: 'white', fontSize: 26, fontWeight: 'bold', marginTop: 15 },
+  userRoleBadge: { color: COLORS.primary, fontWeight: 'bold', marginTop: 5, letterSpacing: 2, textTransform: 'uppercase' },
+  pointsCard: { backgroundColor: '#1e293b', width: '90%', borderRadius: 24, padding: 25, marginVertical: 15, alignItems: 'center', borderWidth: 2, borderColor: COLORS.primary },
+  pointsTitle: { color: 'white', fontSize: 14, opacity: 0.8 },
+  pointsValue: { color: COLORS.primary, fontSize: 44, fontWeight: '900', marginTop: 5 },
+  card: { backgroundColor: 'white', width: '90%', borderRadius: 28, padding: 25, marginTop: 10 },
+  cardSectionTitle: { fontSize: 11, color: "#9CA3AF", fontWeight: "800", textTransform: 'uppercase', marginBottom: 15 },
+  infoRow: { paddingVertical: 5 },
+  infoLabel: { color: "#6B7280", fontSize: 12, marginBottom: 4 },
+  infoValue: { color: "#111827", fontSize: 16, fontWeight: "700" },
+  divider: { height: 1, backgroundColor: "#F3F4F6", marginVertical: 15 },
+  logoutButton: { marginTop: 30, width: '90%', padding: 20, borderRadius: 20, backgroundColor: 'rgba(239, 68, 68, 0.1)', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.2)' },
+  logoutButtonText: { color: "#F87171", fontWeight: "800", fontSize: 16 }
 });

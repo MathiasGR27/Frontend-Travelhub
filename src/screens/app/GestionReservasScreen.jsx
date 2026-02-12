@@ -6,10 +6,15 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  TextInput
+  TextInput,
+  Alert
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Importante instalarlo
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
+
+// Clave para guardar los datos en el dispositivo
+const ADMIN_RESERVAS_CACHE = "@admin_reservas_cache";
 
 export default function GestionReservasScreen() {
   const [reservas, setReservas] = useState([]);
@@ -17,19 +22,35 @@ export default function GestionReservasScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [isOffline, setIsOffline] = useState(false);
 
   const cargarTodasLasReservas = async () => {
     try {
       setLoading(true);
-
-      // CAMBIO AQUÍ: Usamos /reservas porque ahí definiste el router.get("/")
+      
+      // 1. Intentamos traer datos frescos del servidor
       const { data } = await api.get("/reservas");
-
+      
+      // 2. Si hay éxito, guardamos en el caché para el futuro
       setReservas(data);
       setFiltradas(data);
+      await AsyncStorage.setItem(ADMIN_RESERVAS_CACHE, JSON.stringify(data));
+      setIsOffline(false);
+
     } catch (error) {
       console.error("Error cargando reservas:", error);
-      // Si falla, revisa los logs del backend para ver si es un error de permisos (403)
+      
+      // 3. SI FALLA (Por falta de internet), intentamos cargar del caché
+      const cachedData = await AsyncStorage.getItem(ADMIN_RESERVAS_CACHE);
+      if (cachedData) {
+        const parsedData = JSON.parse(cachedData);
+        setReservas(parsedData);
+        setFiltradas(parsedData);
+        setIsOffline(true);
+        Alert.alert("Aviso", "Sin conexión. Mostrando datos guardados localmente.");
+      } else {
+        Alert.alert("Error", "No hay conexión ni datos guardados.");
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -40,7 +61,6 @@ export default function GestionReservasScreen() {
     cargarTodasLasReservas();
   }, []);
 
-  // Buscador por nombre de usuario o destino
   const handleSearch = (text) => {
     setBusqueda(text);
     const lowerText = text.toLowerCase();
@@ -66,9 +86,7 @@ export default function GestionReservasScreen() {
           </Text>
         </View>
       </View>
-
       <View style={styles.divider} />
-
       <View style={styles.vueloInfo}>
         <Text style={styles.vueloText}>
           ✈️ {item.vuelo?.origen} ➔ {item.vuelo?.destino}
@@ -77,7 +95,6 @@ export default function GestionReservasScreen() {
           Fecha: {item.vuelo?.fecha_salida} | {item.vuelo?.hora_salida}
         </Text>
       </View>
-
       <View style={styles.pasajerosContainer}>
         <Text style={styles.pasajerosTitle}>Pasajeros registrados:</Text>
         {item.pasajeros?.map((p, idx) => (
@@ -86,7 +103,6 @@ export default function GestionReservasScreen() {
           </Text>
         ))}
       </View>
-
       <View style={styles.cardFooter}>
         <Text style={styles.fechaReserva}>Realizada el: {new Date(item.fecha_reserva).toLocaleDateString()}</Text>
         <Text style={styles.totalText}>Total: ${item.total}</Text>
@@ -105,6 +121,13 @@ export default function GestionReservasScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.mainTitle}>Panel de Reservas</Text>
+      
+      {/* Indicador de modo offline */}
+      {isOffline && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineText}>Estás en modo offline (Datos antiguos)</Text>
+        </View>
+      )}
 
       <TextInput
         style={styles.searchBar}
@@ -129,6 +152,8 @@ export default function GestionReservasScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryDark, padding: 15 },
   mainTitle: { color: 'white', fontSize: 24, fontWeight: 'bold', marginTop: 40, marginBottom: 15 },
+  offlineBanner: { backgroundColor: '#EF4444', padding: 5, borderRadius: 5, marginBottom: 10 },
+  offlineText: { color: 'white', fontSize: 12, textAlign: 'center', fontWeight: 'bold' },
   searchBar: { backgroundColor: 'white', borderRadius: 10, padding: 12, marginBottom: 20 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.primaryDark },
   card: { backgroundColor: 'white', borderRadius: 15, padding: 15, marginBottom: 15, elevation: 3 },

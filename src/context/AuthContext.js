@@ -37,13 +37,18 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // --- FUNCIÓN PARA ACTUALIZAR PUNTOS Y DATOS ---
+  // --- FUNCIÓN ACTUALIZADA ---
   const actualizarDatosUsuario = async (newUserData) => {
     try {
-      // Fusionamos los datos actuales con los nuevos (puntos, etc)
+      // Creamos el nuevo objeto combinando lo que ya tenemos con lo nuevo (ej: la foto)
       const updatedUser = { ...user, ...newUserData };
+      
+      // Guardamos en AsyncStorage para que al cerrar y abrir la app siga ahí
       await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
+      
+      // Actualizamos el estado global para que todas las pantallas lo vean
       setUser(updatedUser);
+      console.log("Contexto actualizado con nuevos datos:", newUserData);
     } catch (error) {
       console.error("Error al actualizar datos localmente:", error);
     }

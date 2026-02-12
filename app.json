@@ -1,22 +1,40 @@
 {
   "expo": {
     "name": "Front-TravelHub",
-    "slug": "front-travelhub",
+    "slug": "front-travelhub", 
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1C2D41"
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "com.travelhub.app",
+      "compileSdk": 35,
+      "targetSdk": 34,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png"
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#1C2D41"
       }
     },
     "plugins": [
-      "expo-barcode-scanner"
-    ]
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permite que TravelHub use la cámara para escanear el QR de abordaje."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ca145540-16f9-45e8-be79-e64541eced86"
+      }
+    }
   }
 }
