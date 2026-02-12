@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { 
-  View, Text, StyleSheet, TextInput, FlatList, 
-  TouchableOpacity, ActivityIndicator, ScrollView 
+import {
+  View, Text, StyleSheet, TextInput, FlatList,
+  TouchableOpacity, ActivityIndicator, ScrollView
 } from "react-native";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
@@ -9,7 +9,7 @@ import { COLORS } from "../../styles/constants/colors";
 export default function BuscarVuelosScreen({ navigation }) {
   const [vuelos, setVuelos] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
   // ESTADOS PARA LOS FILTROS DEL BACKEND
   const [origen, setOrigen] = useState("");
   const [destino, setDestino] = useState("");
@@ -22,10 +22,10 @@ export default function BuscarVuelosScreen({ navigation }) {
   }, []);
 
   const handleBuscar = async () => {
-    
+
     try {
       setLoading(true);
-      
+
       // Preparamos los query params exactamente como los pide tu controller
       const params = {
         origen: origen.trim() || undefined,
@@ -45,7 +45,7 @@ export default function BuscarVuelosScreen({ navigation }) {
   };
 
   const renderVuelo = ({ item }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.card}
       onPress={() => navigation.navigate("Pasajero", { vuelo: item })}
     >
@@ -64,37 +64,37 @@ export default function BuscarVuelosScreen({ navigation }) {
 
       {/* SECCIÓN DE FILTROS SEPARADOS */}
       <View style={styles.filterSection}>
-        <TextInput 
-          style={styles.inputFull} 
-          placeholder="Ciudad de Origen" 
+        <TextInput
+          style={styles.inputFull}
+          placeholder="Ciudad de Origen"
           value={origen}
           onChangeText={setOrigen}
         />
-        <TextInput 
-          style={styles.inputFull} 
-          placeholder="Ciudad de Destino" 
+        <TextInput
+          style={styles.inputFull}
+          placeholder="Ciudad de Destino"
           value={destino}
           onChangeText={setDestino}
         />
-        
+
         <View style={styles.row}>
-           <TextInput 
-            style={[styles.inputHalf, { flex: 2 }]} 
-            placeholder="Fecha" 
+          <TextInput
+            style={[styles.inputHalf, { flex: 2 }]}
+            placeholder="Fecha"
             value={fecha}
             onChangeText={setFecha}
           />
           {/* Inputs de Precio Separados */}
-          <TextInput 
-            style={styles.inputHalf} 
-            placeholder="Min $" 
+          <TextInput
+            style={styles.inputHalf}
+            placeholder="Min $"
             keyboardType="numeric"
             value={minPrecio}
             onChangeText={setMinPrecio}
           />
-          <TextInput 
-            style={styles.inputHalf} 
-            placeholder="Max $" 
+          <TextInput
+            style={styles.inputHalf}
+            placeholder="Max $"
             keyboardType="numeric"
             value={maxPrecio}
             onChangeText={setMaxPrecio}
@@ -126,34 +126,34 @@ export default function BuscarVuelosScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryDark, padding: 20 },
   title: { color: 'white', fontSize: 24, fontWeight: 'bold', marginTop: 40, marginBottom: 15 },
-  filterSection: { 
-    backgroundColor: 'rgba(255,255,255,0.05)', 
-    padding: 15, 
-    borderRadius: 20, 
+  filterSection: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    padding: 15,
+    borderRadius: 20,
     marginBottom: 20,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)'
   },
-  inputFull: { 
-    backgroundColor: 'white', 
-    borderRadius: 10, 
-    padding: 12, 
+  inputFull: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 12,
     marginBottom: 10,
-    fontSize: 14 
+    fontSize: 14
   },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
-  inputHalf: { 
-    backgroundColor: 'white', 
-    borderRadius: 10, 
-    padding: 12, 
-    flex: 1, 
+  inputHalf: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 12,
+    flex: 1,
     marginHorizontal: 2,
     fontSize: 13
   },
-  btnBuscar: { 
-    backgroundColor: COLORS.primary, 
-    padding: 15, 
-    borderRadius: 12, 
+  btnBuscar: {
+    backgroundColor: COLORS.primary,
+    padding: 15,
+    borderRadius: 12,
     alignItems: 'center',
     elevation: 3
   },

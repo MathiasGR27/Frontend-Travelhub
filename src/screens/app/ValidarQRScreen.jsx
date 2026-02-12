@@ -10,7 +10,7 @@ export default function ValidarQRScreen() {
   const [loading, setLoading] = useState(false);
   const [scanned, setScanned] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
-  
+
   // NUEVO: Estado para guardar la respuesta del Back
   const [datosReserva, setDatosReserva] = useState(null);
 
@@ -31,12 +31,12 @@ export default function ValidarQRScreen() {
     try {
       setLoading(true);
       setDatosReserva(null); // Limpiamos búsqueda anterior
-      
+
       const response = await api.get(`/admin/validar-qr/${cod}`);
-      
+
       // Guardamos todo el JSON que mandaste del back
-      setDatosReserva(response.data); 
-      
+      setDatosReserva(response.data);
+
     } catch (error) {
       Alert.alert("❌ Error", error.response?.data?.message || "Código inválido");
     } finally {
@@ -60,8 +60,8 @@ export default function ValidarQRScreen() {
         </View>
       ) : (
         <View>
-          <TouchableOpacity 
-            style={styles.scanToggleBtn} 
+          <TouchableOpacity
+            style={styles.scanToggleBtn}
             onPress={async () => {
               const { granted } = await requestPermission();
               if (granted) { setScanned(false); setIsCameraActive(true); }
@@ -113,9 +113,9 @@ export default function ValidarQRScreen() {
               </View>
             </View>
           ))}
-          
-          <TouchableOpacity 
-            style={styles.btnClear} 
+
+          <TouchableOpacity
+            style={styles.btnClear}
             onPress={() => { setDatosReserva(null); setCodigo(""); }}
           >
             <Text style={styles.btnClearText}>Limpiar para nueva validación</Text>
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   scanToggleText: { color: 'white', fontWeight: 'bold' },
   cancelButton: { position: 'absolute', bottom: 10, alignSelf: 'center', backgroundColor: 'red', padding: 8, borderRadius: 5 },
   cancelButtonText: { color: 'white', fontSize: 12 },
-  
+
   // Estilos de la Tarjeta de Información
   infoCard: { backgroundColor: 'white', borderRadius: 20, padding: 20, marginTop: 25 },
   successBadge: { backgroundColor: '#D1FAE5', alignSelf: 'center', paddingHorizontal: 15, paddingVertical: 5, borderRadius: 20, marginBottom: 15 },

@@ -6,9 +6,6 @@ import { COLORS } from "../../styles/constants/colors";
 export default function HomeScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
 
-  console.log("Datos del usuario en Home:", user);
-  console.log("¿Qué hay en user.telefono?:", user?.telefono);
-
   return (
     <View style={styles.container}>
       {/* HEADER PERSONALIZADO */}
@@ -23,72 +20,87 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-       <Text style={styles.welcome}>
+        <Text style={styles.welcome}>
           Bienvenid@,{"\n"}
           <Text style={styles.userName}>
-            {/* Si es ADMIN, dice "Administrador", si es USER, jala su nombre del backend */}
             {user?.rol === 'ADMIN' ? 'Administrador' : (user?.nombre || 'Usuario')}
           </Text>
         </Text>
-        {/* --- SECCIÓN ADMINISTRADOR --- */}
-          {user?.rol === "ADMIN" && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Panel de Control</Text>
-              
-              {/* BOTÓN GESTIÓN DE VUELOS (NUEVO) */}
-              <TouchableOpacity
-                style={[styles.card, styles.adminCard]}
-                onPress={() => navigation.navigate("AdminVuelos")}
-              >
-                <View style={styles.iconCircleAdmin}>
-                  <Text style={{fontSize: 24}}>🛫</Text>
-                </View>
-                <View style={styles.cardContent}>
-                  <Text style={styles.cardTitle}>Gestionar Vuelos</Text>
-                  <Text style={styles.cardText}>Crear, editar o eliminar ofertas</Text>
-                </View>
-              </TouchableOpacity>
 
-              {/* BOTÓN VALIDAR QR */}
-              <TouchableOpacity
-                style={[styles.card, styles.adminCard]}
-                onPress={() => navigation.navigate("ValidarQR")}
-              >
-                <View style={styles.iconCircleAdmin}>
-                  <Text style={{fontSize: 24}}>📸</Text>
-                </View>
-                <View style={styles.cardContent}>
-                  <Text style={styles.cardTitle}>Validar Código QR</Text>
-                  <Text style={styles.cardText}>Escanear y confirmar abordaje</Text>
-                </View>
-              </TouchableOpacity>
-              {/* BOTÓN NUEVO: GESTIÓN DE TODAS LAS RESERVAS */}
-    <TouchableOpacity
-      style={[styles.card, styles.adminCard]}
-      onPress={() => navigation.navigate("GestionReservas")}
-    >
-      <View style={styles.iconCircleAdmin}>
-        <Text style={{fontSize: 24}}>📋</Text>
-      </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>Ver Todas las Reservas</Text>
-        <Text style={styles.cardText}>Listado global de pasajeros y pagos</Text>
-      </View>
-    </TouchableOpacity>
-  </View>
-)}
+        {/* --- SECCIÓN ADMINISTRADOR --- */}
+        {user?.rol === "ADMIN" && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Panel de Control</Text>
+
+            {/* GESTIÓN DE VUELOS */}
+            <TouchableOpacity
+              style={[styles.card, styles.adminCard]}
+              onPress={() => navigation.navigate("AdminVuelos")}
+            >
+              <View style={styles.iconCircleAdmin}>
+                <Text style={{ fontSize: 24 }}>🛫</Text>
+              </View>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>Gestionar Vuelos</Text>
+                <Text style={styles.cardText}>Crear, editar o eliminar ofertas</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* VALIDAR QR */}
+            <TouchableOpacity
+              style={[styles.card, styles.adminCard]}
+              onPress={() => navigation.navigate("ValidarQR")}
+            >
+              <View style={styles.iconCircleAdmin}>
+                <Text style={{ fontSize: 24 }}>📸</Text>
+              </View>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>Validar Código QR</Text>
+                <Text style={styles.cardText}>Escanear y confirmar abordaje</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* GESTIÓN DE RESERVAS */}
+            <TouchableOpacity
+              style={[styles.card, styles.adminCard]}
+              onPress={() => navigation.navigate("GestionReservas")}
+            >
+              <View style={styles.iconCircleAdmin}>
+                <Text style={{ fontSize: 24 }}>📋</Text>
+              </View>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>Ver Todas las Reservas</Text>
+                <Text style={styles.cardText}>Listado global de pasajeros y pagos</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* REGISTRAR OTRO ADMIN - AHORA DENTRO DE LA SECCIÓN */}
+            <TouchableOpacity
+              style={[styles.card, styles.adminCard]}
+              onPress={() => navigation.navigate("Register", { isAdminCreator: true })}
+            >
+              <View style={styles.iconCircleAdmin}>
+                <Text style={{ fontSize: 24 }}>🛡️</Text>
+              </View>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>Registrar Administrador</Text>
+                <Text style={styles.cardText}>Dar acceso al panel a nuevo personal</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* --- SECCIÓN USUARIO (CLIENTE) --- */}
         {user?.rol === "USER" && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Tus Viajes</Text>
-            
+
             <TouchableOpacity
               style={styles.card}
               onPress={() => navigation.navigate("BuscarVuelos")}
             >
               <View style={styles.iconCircle}>
-                <Text style={{fontSize: 24}}>✈️</Text>
+                <Text style={{ fontSize: 24 }}>✈️</Text>
               </View>
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>Buscar vuelos</Text>
@@ -101,7 +113,7 @@ export default function HomeScreen({ navigation }) {
               onPress={() => navigation.navigate("MisReservas")}
             >
               <View style={styles.iconCircle}>
-                <Text style={{fontSize: 24}}>📅</Text>
+                <Text style={{ fontSize: 24 }}>📅</Text>
               </View>
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>Mis reservas</Text>
@@ -119,7 +131,7 @@ export default function HomeScreen({ navigation }) {
             onPress={() => navigation.navigate("Perfil")}
           >
             <View style={styles.iconCircle}>
-              <Text style={{fontSize: 24}}>👤</Text>
+              <Text style={{ fontSize: 24 }}>👤</Text>
             </View>
             <View style={styles.cardContent}>
               <Text style={styles.cardTitle}>Mi Perfil</Text>

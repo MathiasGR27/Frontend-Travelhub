@@ -48,13 +48,13 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <Text style={styles.logo}>TravelHub</Text>
-        <Text style={styles.subtitle}>¡Qué bueno verte de nuevo!</Text>
+        <Text style={styles.subtitle}>¡Listo para Viajar!</Text>
 
         <View style={styles.card}>
           <InputField
@@ -65,23 +65,23 @@ export default function LoginScreen({ navigation }) {
           />
 
           <View style={styles.passwordWrapper}>
-                    <InputField
-                      placeholder="Contraseña"
-                      secureTextEntry={!visible} 
-                      value={password}
-                      onChangeText={setPassword}
-                    />
-                    <TouchableOpacity
-                      onPress={visiblePassword}
-                      style={styles.eyeButton}
-                    >
-                      <AntDesign
-                        name={visible ? "eye" : "eye-invisible"}
-                        size={20}
-                        color="#666"
-                      />
-                    </TouchableOpacity>
-                  </View>
+            <InputField
+              placeholder="Contraseña"
+              secureTextEntry={!visible}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity
+              onPress={visiblePassword}
+              style={styles.eyeButton}
+            >
+              <AntDesign
+                name={visible ? "eye" : "eye-invisible"}
+                size={20}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.buttonSpace}>
             <PrimaryButton
@@ -91,7 +91,7 @@ export default function LoginScreen({ navigation }) {
             />
           </View>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => navigation.navigate("Register")}
             activeOpacity={0.7}
             style={styles.footerClickable}
@@ -142,12 +142,12 @@ const styles = StyleSheet.create({
   passwordWrapper: {
     width: '100%',
     position: 'relative',
-    justifyContent: 'center', 
+    justifyContent: 'center',
   },
   eyeButton: {
     position: 'absolute',
     right: 15,
-    top: 15, 
+    top: 15,
     zIndex: 2,
   },
   buttonSpace: {

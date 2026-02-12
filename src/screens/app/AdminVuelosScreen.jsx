@@ -15,19 +15,19 @@ export default function AdminVuelosScreen({ navigation }) {
 
   const cargarVuelos = async () => {
     try {
-        setLoading(true);
-        // PRUEBA CAMBIANDO ESTA LÍNEA SEGÚN TU RUTA ( /vuelos o /vuelos/listar )
-        const { data } = await api.get("/vuelos"); 
-        
-        console.log("Vuelos recibidos:", data);
-        setVuelos(data);
+      setLoading(true);
+      // PRUEBA CAMBIANDO ESTA LÍNEA SEGÚN TU RUTA ( /vuelos o /vuelos/listar )
+      const { data } = await api.get("/vuelos");
+
+      console.log("Vuelos recibidos:", data);
+      setVuelos(data);
     } catch (error) {
-        console.error("DETALLE DEL ERROR:", error.response?.data || error.message);
-        Alert.alert("Error", "No se pudieron cargar los vuelos");
+      console.error("DETALLE DEL ERROR:", error.response?.data || error.message);
+      Alert.alert("Error", "No se pudieron cargar los vuelos");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-    };
+  };
 
   const confirmarEliminar = (id) => {
     Alert.alert("Eliminar Vuelo", "¿Estás seguro de eliminar este vuelo?", [
@@ -52,8 +52,8 @@ export default function AdminVuelosScreen({ navigation }) {
           <Text style={styles.backBtn}>←</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Gestión de Vuelos</Text>
-        <TouchableOpacity 
-          style={styles.addBtn} 
+        <TouchableOpacity
+          style={styles.addBtn}
           onPress={() => navigation.navigate("FormVuelo")}
         >
           <Text style={styles.addBtnText}>+ Nuevo</Text>
@@ -64,40 +64,40 @@ export default function AdminVuelosScreen({ navigation }) {
         <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 50 }} />
       ) : (
         <FlatList
-            data={vuelos}
-            // Cambiamos item.id por item.id_vuelo
-            keyExtractor={(item) => item.id_vuelo.toString()} 
-            contentContainerStyle={{ paddingBottom: 30 }}
-            renderItem={({ item }) => (
-                <View style={styles.card}>
-                <View style={styles.info}>
-                    {/* Usamos los campos reales de tu modelo VueloOferta */}
-                    <Text style={styles.route}>{item.origen} → {item.destino}</Text>
-                    <Text style={styles.details}>{item.fecha_salida} | {item.hora_salida}</Text>
-                    <Text style={styles.price}>
-                    ${item.precio} - <Text style={{color: '#666'}}>Cap: {item.capacidad}</Text>
-                    </Text>
-                </View>
-                
-                <View style={styles.actions}>
-                    <TouchableOpacity 
-                    onPress={() => navigation.navigate("FormVuelo", { vuelo: item })}
-                    style={styles.btnIcon}
-                    >
-                    <Text style={{ fontSize: 20 }}>📝</Text>
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity 
-                    onPress={() => confirmarEliminar(item.id_vuelo)} // Cambiado aquí también
-                    style={styles.btnIcon}
-                    >
-                    <Text style={{ fontSize: 20 }}>🗑️</Text>
-                    </TouchableOpacity>
-                </View>
-                </View>
-            )}
-            ListEmptyComponent={<Text style={styles.empty}>No hay vuelos creados.</Text>}
-            />
+          data={vuelos}
+          // Cambiamos item.id por item.id_vuelo
+          keyExtractor={(item) => item.id_vuelo.toString()}
+          contentContainerStyle={{ paddingBottom: 30 }}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <View style={styles.info}>
+                {/* Usamos los campos reales de tu modelo VueloOferta */}
+                <Text style={styles.route}>{item.origen} → {item.destino}</Text>
+                <Text style={styles.details}>{item.fecha_salida} | {item.hora_salida}</Text>
+                <Text style={styles.price}>
+                  ${item.precio} - <Text style={{ color: '#666' }}>Cap: {item.capacidad}</Text>
+                </Text>
+              </View>
+
+              <View style={styles.actions}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("FormVuelo", { vuelo: item })}
+                  style={styles.btnIcon}
+                >
+                  <Text style={{ fontSize: 20 }}>📝</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => confirmarEliminar(item.id_vuelo)} // Cambiado aquí también
+                  style={styles.btnIcon}
+                >
+                  <Text style={{ fontSize: 20 }}>🗑️</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          ListEmptyComponent={<Text style={styles.empty}>No hay vuelos creados.</Text>}
+        />
       )}
     </View>
   );

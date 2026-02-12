@@ -4,7 +4,8 @@ import PrimaryButton from "../../components/PrimaryButton";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
 
-export default function PagoScreen({ route, navigation }) {
+
+export default function ReservaAgregadaScreen({ route, navigation }) {
   const { vuelo, listaPasajeros } = route.params;
   const [loading, setLoading] = useState(false);
 
@@ -14,13 +15,8 @@ export default function PagoScreen({ route, navigation }) {
     try {
       setLoading(true);
 
-      // --- ESTRUCTURA COMPATIBLE CON TU BACKEND ---
-      // El backend espera:
-      // 1. asiento (del primer pasajero)
-      // 2. pasajeros_adicionales (el resto de la lista)
-      
       const primerPasajero = listaPasajeros[0];
-      
+
       // Mapeamos los adicionales al formato: nombre_completo y documento
       const adicionales = listaPasajeros.slice(1).map(p => ({
         nombre_completo: `${p.nombre} ${p.apellido || ""}`.trim(),
@@ -30,8 +26,8 @@ export default function PagoScreen({ route, navigation }) {
 
       const body = {
         id_vuelo: vuelo.id_vuelo,
-        asiento: primerPasajero.asiento, // 👈 Tu backend lo pide así
-        pasajeros_adicionales: adicionales, // 👈 Tu backend lo pide así
+        asiento: primerPasajero.asiento,
+        pasajeros_adicionales: adicionales,
         total: precioTotal // Aunque el backend lo recalcula, lo enviamos
       };
 
@@ -46,7 +42,7 @@ export default function PagoScreen({ route, navigation }) {
     } catch (error) {
       console.log("DETALLE DEL ERROR:", error.response?.data);
       Alert.alert(
-        "Error", 
+        "Error",
         error.response?.data?.message || "Error al procesar reserva"
       );
     } finally {
@@ -60,7 +56,7 @@ export default function PagoScreen({ route, navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backBtn}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Finalizar Compra</Text>
+        <Text style={styles.title}>Finalizar Reserva</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
@@ -68,7 +64,7 @@ export default function PagoScreen({ route, navigation }) {
           <Text style={styles.label}>VUELO SELECCIONADO</Text>
           <Text style={styles.routeText}>{vuelo.origen} → {vuelo.destino}</Text>
           <Text style={styles.infoText}>📅 {vuelo.fecha_salida} | ⏰ {vuelo.hora_salida}</Text>
-          
+
           <View style={styles.divider} />
 
           <Text style={styles.label}>PASAJEROS ({listaPasajeros.length})</Text>
@@ -127,14 +123,14 @@ const styles = StyleSheet.create({
   routeText: { fontSize: 20, fontWeight: 'bold', color: COLORS.primaryDark },
   infoText: { fontSize: 15, color: '#4B5563', marginTop: 4 },
   divider: { height: 1, backgroundColor: '#E5E7EB', marginVertical: 20 },
-  pasajeroRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    backgroundColor: '#F9FAFB', 
-    padding: 12, 
-    borderRadius: 12, 
-    marginBottom: 10 
+  pasajeroRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 10
   },
   pasajeroNombre: { fontSize: 15, fontWeight: 'bold', color: COLORS.primaryDark },
   pasajeroCedula: { fontSize: 13, color: '#6B7280' },

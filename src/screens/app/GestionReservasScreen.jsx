@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  StyleSheet, 
-  ActivityIndicator, 
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
   RefreshControl,
-  TextInput 
+  TextInput
 } from "react-native";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
@@ -19,22 +19,22 @@ export default function GestionReservasScreen() {
   const [busqueda, setBusqueda] = useState("");
 
   const cargarTodasLasReservas = async () => {
-  try {
-    setLoading(true);
-    
-    // CAMBIO AQUÍ: Usamos /reservas porque ahí definiste el router.get("/")
-    const { data } = await api.get("/reservas"); 
-    
-    setReservas(data);
-    setFiltradas(data);
-  } catch (error) {
-    console.error("Error cargando reservas:", error);
-    // Si falla, revisa los logs del backend para ver si es un error de permisos (403)
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
+    try {
+      setLoading(true);
+
+      // CAMBIO AQUÍ: Usamos /reservas porque ahí definiste el router.get("/")
+      const { data } = await api.get("/reservas");
+
+      setReservas(data);
+      setFiltradas(data);
+    } catch (error) {
+      console.error("Error cargando reservas:", error);
+      // Si falla, revisa los logs del backend para ver si es un error de permisos (403)
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     cargarTodasLasReservas();
@@ -44,7 +44,7 @@ export default function GestionReservasScreen() {
   const handleSearch = (text) => {
     setBusqueda(text);
     const lowerText = text.toLowerCase();
-    const resultado = reservas.filter(r => 
+    const resultado = reservas.filter(r =>
       r.usuario?.nombre_completo.toLowerCase().includes(lowerText) ||
       r.vuelo?.destino.toLowerCase().includes(lowerText) ||
       r.id_reserva.toString().includes(lowerText)
@@ -105,7 +105,7 @@ export default function GestionReservasScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.mainTitle}>Panel de Reservas</Text>
-      
+
       <TextInput
         style={styles.searchBar}
         placeholder="Buscar por cliente, destino o ID..."
@@ -118,7 +118,7 @@ export default function GestionReservasScreen() {
         keyExtractor={(item) => item.id_reserva.toString()}
         renderItem={renderItem}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => {setRefreshing(true); cargarTodasLasReservas();}} tintColor="white" />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); cargarTodasLasReservas(); }} tintColor="white" />
         }
         ListEmptyComponent={<Text style={styles.emptyText}>No se encontraron reservas.</Text>}
       />

@@ -55,32 +55,32 @@ export default function FormVueloScreen({ route, navigation }) {
 
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         <Text style={styles.label}>Origen *</Text>
-        <TextInput style={styles.input} value={form.origen} onChangeText={(t) => setForm({...form, origen: t})} placeholder="Ciudad de origen" />
+        <TextInput style={styles.input} value={form.origen} onChangeText={(t) => setForm({ ...form, origen: t })} placeholder="Ciudad de origen" />
 
         <Text style={styles.label}>Destino *</Text>
-        <TextInput style={styles.input} value={form.destino} onChangeText={(t) => setForm({...form, destino: t})} placeholder="Ciudad de destino" />
+        <TextInput style={styles.input} value={form.destino} onChangeText={(t) => setForm({ ...form, destino: t })} placeholder="Ciudad de destino" />
 
         <Text style={styles.label}>Precio ($) *</Text>
-        <TextInput style={styles.input} value={form.precio} keyboardType="numeric" onChangeText={(t) => setForm({...form, precio: t})} placeholder="0.00" />
+        <TextInput style={styles.input} value={form.precio} keyboardType="numeric" onChangeText={(t) => setForm({ ...form, precio: t })} placeholder="0.00" />
 
         <Text style={styles.label}>Fecha (YYYY-MM-DD) *</Text>
-        <TextInput style={styles.input} value={form.fecha_salida} onChangeText={(t) => setForm({...form, fecha_salida: t})} placeholder="2026-02-10" />
+        <TextInput style={styles.input} value={form.fecha_salida} onChangeText={(t) => setForm({ ...form, fecha_salida: t })} placeholder="2026-02-10" />
 
         <View style={styles.row}>
           <View style={{ flex: 1, marginRight: 10 }}>
             <Text style={styles.label}>Hora</Text>
-            <TextInput style={styles.input} value={form.hora_salida} onChangeText={(t) => setForm({...form, hora_salida: t})} placeholder="12:00:00" />
+            <TextInput style={styles.input} value={form.hora_salida} onChangeText={(t) => setForm({ ...form, hora_salida: t })} placeholder="12:00:00" />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>Capacidad</Text>
-            <TextInput style={styles.input} value={form.capacidad} keyboardType="numeric" onChangeText={(t) => setForm({...form, capacidad: t})} placeholder="60" />
+            <TextInput style={styles.input} value={form.capacidad} keyboardType="numeric" onChangeText={(t) => setForm({ ...form, capacidad: t })} placeholder="60" />
           </View>
         </View>
 
         <View style={{ marginTop: 10 }}>
-          <PrimaryButton 
-            title={vueloExistente ? "Actualizar Vuelo" : "Crear Vuelo"} 
-            onPress={handleSave} 
+          <PrimaryButton
+            title={vueloExistente ? "Actualizar Vuelo" : "Crear Vuelo"}
+            onPress={handleSave}
             loading={loading}
           />
         </View>

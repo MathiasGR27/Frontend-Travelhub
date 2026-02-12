@@ -1,43 +1,64 @@
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { useRoute } from "@react-navigation/native"; // IMPORTANTE: Añade esto
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View, ScrollView } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import InputField from "../../components/InputField";
 import PrimaryButton from "../../components/PrimaryButton";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
-import AntDesign from "@expo/vector-icons/AntDesign";
 
 export default function RegisterScreen({ navigation }) {
+  const route = useRoute();
+  // Detectamos si venimos del panel de Admin
+  const isAdminCreator = route.params?.isAdminCreator || false;
+
   const [nombreCompleto, setNombreCompleto] = useState("");
   const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(false);
 
-  const visiblePassword = () => {
-    setVisible(!visible);
-  };
+  const visiblePassword = () => setVisible(!visible);
 
   const handleRegister = async () => {
-    if (!nombreCompleto || !telefono || !email || !password) {
+    if (!nombreCompleto || !telefono || !email || !password || !confirmPassword) {
       Alert.alert("Error", "Todos los campos son obligatorios");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Las contraseñas no coinciden");
       return;
     }
 
     try {
       setLoading(true);
-      await api.post("/auth/register", {
+
+      // ENDPOINT DINÁMICO: Si es admin usa /crearAdmin, si no /register
+      const endpoint = isAdminCreator ? "/auth/crear-admin" : "/auth/register";
+
+      await api.post(endpoint, {
         nombre_completo: nombreCompleto,
         telefono: telefono,
         email: email,
         password: password,
+        confirmPassword: confirmPassword,
       });
 
-      Alert.alert("¡Éxito!", "Cuenta creada correctamente", [
-        { text: "Ir al Login", onPress: () => navigation.navigate("Login") },
+      const successMsg = isAdminCreator
+        ? "Nuevo administrador registrado"
+        : "Cuenta creada correctamente";
+
+      Alert.alert("¡Éxito!", successMsg, [
+        {
+          text: "OK",
+          onPress: () => isAdminCreator ? navigation.goBack() : navigation.navigate("Login")
+        },
       ]);
     } catch (error) {
-      const msg = error.response?.data?.message || "Error al registrar";
+      const msg = error.response?.data?.message || "Error en la operación";
       Alert.alert("Error", msg);
     } finally {
       setLoading(false);
@@ -47,7 +68,10 @@ export default function RegisterScreen({ navigation }) {
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.logo}>TravelHub</Text>
-      <Text style={styles.subtitle}>Crea tu cuenta de viajero</Text>
+      {/* SUBTÍTULO DINÁMICO */}
+      <Text style={styles.subtitle}>
+        {isAdminCreator ? "Registro de Personal Administrativo" : "Crea tu cuenta de viajero"}
+      </Text>
 
       <View style={styles.card}>
         <InputField
@@ -73,39 +97,51 @@ export default function RegisterScreen({ navigation }) {
         <View style={styles.passwordWrapper}>
           <InputField
             placeholder="Contraseña"
-            secureTextEntry={!visible} 
+            secureTextEntry={!visible}
             value={password}
             onChangeText={setPassword}
           />
-          <TouchableOpacity
-            onPress={visiblePassword}
-            style={styles.eyeButton}
-          >
-            <AntDesign
-              name={visible ? "eye" : "eye-invisible"}
-              size={20}
-              color="#666"
-            />
+          <TouchableOpacity onPress={visiblePassword} style={styles.eyeButton}>
+            <AntDesign name={visible ? "eye" : "eye-invisible"} size={20} color="#666" />
           </TouchableOpacity>
         </View>
 
+        <View style={styles.passwordWrapper}>
+          <InputField
+            placeholder="Repetir contraseña"
+            secureTextEntry={!visible}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+          <TouchableOpacity onPress={visiblePassword} style={styles.eyeButton}>
+            <AntDesign name={visible ? "eye" : "eye-invisible"} size={20} color="#666" />
+          </TouchableOpacity>
+        </View>
+
+        {confirmPassword.length > 0 && password !== confirmPassword && (
+          <Text style={styles.errorText}>Las contraseñas no coinciden</Text>
+        )}
+
         <View style={styles.buttonContainer}>
           <PrimaryButton
-            title="Registrarse ahora"
+            title={isAdminCreator ? "Registrar Admin" : "Registrarse ahora"}
             onPress={handleRegister}
             loading={loading}
           />
         </View>
 
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()} 
-          activeOpacity={0.7}
-          style={styles.footerClickable}
-        >
-          <Text style={styles.footerText}>
-            ¿Ya tienes cuenta? <Text style={styles.loginLink}>Inicia sesión</Text>
-          </Text>
-        </TouchableOpacity>
+        {/* OCULTAR LOGIN LINK SI ES ADMIN */}
+        {!isAdminCreator && (
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+            style={styles.footerClickable}
+          >
+            <Text style={styles.footerText}>
+              ¿Ya tienes cuenta? <Text style={styles.loginLink}>Inicia sesión</Text>
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ScrollView>
   );
@@ -141,17 +177,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
   },
-  // ESTILOS PARA EL OJO
   passwordWrapper: {
     width: '100%',
     position: 'relative',
-    justifyContent: 'center', 
+    justifyContent: 'center',
+    marginBottom: 5,
   },
   eyeButton: {
     position: 'absolute',
     right: 15,
-    top: 15, 
+    top: 15,
     zIndex: 2,
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    marginLeft: 5,
+    marginBottom: 10,
   },
   buttonContainer: {
     marginTop: 10,
