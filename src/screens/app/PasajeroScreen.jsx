@@ -11,8 +11,12 @@ export default function PasajeroScreen({ route, navigation }) {
   const { user } = useContext(AuthContext);
 
   const [pasajeros, setPasajeros] = useState([
-    { nombre: user?.nombre || "", cedula: user?.cedula || "", asiento: "" }
-  ]);
+  { 
+    nombre: user?.nombre || user?.nombre_completo || "", 
+    cedula: user?.cedula || "", 
+    asiento: "" 
+  }
+]);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [indicePasajeroActivo, setIndicePasajeroActivo] = useState(null);

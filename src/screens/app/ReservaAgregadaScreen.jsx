@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView } from "react-native";
 import PrimaryButton from "../../components/PrimaryButton";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
-
+import { AuthContext } from "../../context/AuthContext"; 
 
 export default function ReservaAgregadaScreen({ route, navigation }) {
   const { vuelo, listaPasajeros } = route.params;
+  const { user, actualizarDatosUsuario } = useContext(AuthContext); 
   const [loading, setLoading] = useState(false);
 
   const precioTotal = vuelo.precio * listaPasajeros.length;
@@ -15,32 +16,32 @@ export default function ReservaAgregadaScreen({ route, navigation }) {
     try {
       setLoading(true);
 
-      const primerPasajero = listaPasajeros[0];
-
-      // Mapeamos los adicionales al formato: nombre_completo y documento
-      const adicionales = listaPasajeros.slice(1).map(p => ({
-        nombre_completo: `${p.nombre} ${p.apellido || ""}`.trim(),
-        documento: p.cedula,
-        asiento: p.asiento
-      }));
-
       const body = {
         id_vuelo: vuelo.id_vuelo,
-        asiento: primerPasajero.asiento,
-        pasajeros_adicionales: adicionales,
-        total: precioTotal // Aunque el backend lo recalcula, lo enviamos
+        listaPasajeros: listaPasajeros.map(p => ({
+          nombre: p.nombre,
+          cedula: p.cedula,
+          asiento: p.asiento
+        }))
       };
 
       console.log("Enviando al servidor:", body);
 
       const { data } = await api.post("/reservas", body);
 
+      const cedulaIngresada = listaPasajeros[0].cedula;
+
+      if (cedulaIngresada && user?.cedula !== cedulaIngresada) {
+        await actualizarDatosUsuario({ cedula: cedulaIngresada });
+        console.log("Cédula sincronizada con el perfil local.");
+      }
+
       Alert.alert("¡Éxito!", "Reserva confirmada correctamente", [
         { text: "OK", onPress: () => navigation.replace("MisReservas") }
       ]);
 
     } catch (error) {
-      console.log("DETALLE DEL ERROR:", error.response?.data);
+      console.log("DETALLE DEL ERROR:", error.response?.data || error.message);
       Alert.alert(
         "Error",
         error.response?.data?.message || "Error al procesar reserva"
@@ -71,8 +72,8 @@ export default function ReservaAgregadaScreen({ route, navigation }) {
           {listaPasajeros.map((p, index) => (
             <View key={index} style={styles.pasajeroRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.pasajeroNombre}>{p.nombre} {p.apellido}</Text>
-                <Text style={styles.pasajeroCedula}>ID: {p.cedula}</Text>
+                <Text style={styles.pasajeroNombre}>{p.nombre}</Text>
+                <Text style={styles.pasajeroCedula}>Documento: {p.cedula}</Text>
               </View>
               <View style={styles.asientoTag}>
                 <Text style={styles.asientoText}>{p.asiento}</Text>
@@ -98,7 +99,7 @@ export default function ReservaAgregadaScreen({ route, navigation }) {
 
           <View style={{ marginTop: 30 }}>
             <PrimaryButton
-              title={`Reservar Vuelo a $${precioTotal.toFixed(2)}`}
+              title={`Confirmar y Reservar`}
               onPress={confirmarReserva}
               loading={loading}
             />
@@ -106,7 +107,7 @@ export default function ReservaAgregadaScreen({ route, navigation }) {
         </View>
 
         <Text style={styles.footerNote}>
-          Al confirmar, aceptas los términos y condiciones de transporte de TravelHub.
+          Al confirmar, la cédula ingresada se guardará en tu perfil para futuros viajes.
         </Text>
       </ScrollView>
     </View>
