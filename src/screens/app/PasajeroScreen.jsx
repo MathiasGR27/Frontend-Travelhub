@@ -108,6 +108,7 @@ export default function PasajeroScreen({ route, navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Nombre Completo"
+              placeholderTextColor="#888"
               value={pasajero.nombre}
               onChangeText={(t) => actualizarPasajero(t, index, 'nombre')}
             />
@@ -115,6 +116,7 @@ export default function PasajeroScreen({ route, navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Cédula / Documento"
+              placeholderTextColor="#888"
               keyboardType="numeric"
               value={pasajero.cedula}
               onChangeText={(t) => actualizarPasajero(t, index, 'cedula')}
