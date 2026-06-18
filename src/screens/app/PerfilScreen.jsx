@@ -1,18 +1,19 @@
 import React, { useContext, useState, useEffect } from "react";
-import { 
-  Alert, ScrollView, StyleSheet, Text, TouchableOpacity, 
-  View, Image, ActivityIndicator 
+import {
+  Alert, ScrollView, StyleSheet, Text, TouchableOpacity,
+  View, Image, ActivityIndicator
 } from "react-native";
 import * as ImagePicker from 'expo-image-picker';
 import { AuthContext } from "../../context/AuthContext"; // Importante
 import { COLORS } from "../../styles/constants/colors";
-import api from "../../services/api"; 
+import api from "../../services/api";
 
 export default function PerfilScreen({ navigation }) {
   // Extraemos actualizarDatosUsuario del contexto
   const { user, logout, actualizarDatosUsuario } = useContext(AuthContext);
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const IMAGE_BASE = "http://192.168.5.45:4001";
 
   useEffect(() => {
     if (user?.foto) {
@@ -63,7 +64,7 @@ export default function PerfilScreen({ navigation }) {
       if (data.foto) {
         // 1. Actualizamos el estado local de esta pantalla
         setImage(data.foto);
-        
+
         // 2. ACTUALIZAMOS EL CONTEXTO GLOBAL Y ASYNCSTORAGE
         // Esto hace que la foto no se borre al navegar o reiniciar
         await actualizarDatosUsuario({ foto: data.foto });
@@ -71,7 +72,10 @@ export default function PerfilScreen({ navigation }) {
         Alert.alert("Éxito", "Foto de perfil actualizada correctamente.");
       }
     } catch (error) {
-      console.error("Error subida:", error);
+      console.log(
+        "ERROR AXIOS:",
+        error.response?.data || error.message
+      );
       Alert.alert("Error", "No se pudo subir la imagen al servidor.");
     } finally {
       setUploading(false);
@@ -84,13 +88,17 @@ export default function PerfilScreen({ navigation }) {
 
     if (imagenAMostrar) {
       return (
-        <Image 
-          source={{ uri: `${imagenAMostrar}?t=${new Date().getTime()}` }} 
-          style={styles.avatarImage} 
+        <Image
+          source={{
+            uri: imagenAMostrar?.replace("http://192.168.5.45:4000", IMAGE_BASE)
+          }}
+          style={styles.avatarImage}
+          onLoad={() => console.log("Imagen cargada correctamente")}
+          onError={(e) => console.log("ERROR IMAGEN:", e.nativeEvent)}
         />
       );
     }
-    
+
     const inicial = user?.nombre ? user.nombre.charAt(0).toUpperCase() : "U";
     return (
       <View style={styles.avatarPlaceholder}>
@@ -110,20 +118,20 @@ export default function PerfilScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={{color: 'white', fontSize: 20}}>←</Text>
+          <Text style={{ color: 'white', fontSize: 20 }}>←</Text>
         </TouchableOpacity>
         <Text style={styles.logo}>Mi Perfil</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
+
         <View style={styles.avatarSection}>
           <TouchableOpacity onPress={pickImage} disabled={uploading}>
             <View style={styles.avatarWrapper}>
               {renderAvatar()}
               <View style={styles.editBadge}>
                 {uploading ? (
-                  <ActivityIndicator size="small" color={COLORS.primary}/>
+                  <ActivityIndicator size="small" color={COLORS.primary} />
                 ) : (
                   <Text style={{ fontSize: 16 }}>📸</Text>
                 )}
