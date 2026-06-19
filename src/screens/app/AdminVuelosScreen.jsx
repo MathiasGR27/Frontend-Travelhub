@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function AdminVuelosScreen({ navigation }) {
   const [vuelos, setVuelos] = useState([]);
@@ -84,15 +85,16 @@ export default function AdminVuelosScreen({ navigation }) {
                   onPress={() => navigation.navigate("FormVuelo", { vuelo: item })}
                   style={styles.btnIcon}
                 >
-                  <Text style={{ fontSize: 20 }}>📝</Text>
+                  <Ionicons name="create-outline" size={22} color={COLORS.primaryDark} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={() => confirmarEliminar(item.id_vuelo)} // Cambiado aquí también
+                  onPress={() => confirmarEliminar(item.id_vuelo)}
                   style={styles.btnIcon}
                 >
-                  <Text style={{ fontSize: 20 }}>🗑️</Text>
+                  <Ionicons name="trash-outline" size={22} color="#e11d48" />
                 </TouchableOpacity>
+
               </View>
             </View>
           )}

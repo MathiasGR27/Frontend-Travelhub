@@ -9,14 +9,16 @@ import {
   TextInput,
   Alert
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Importante instalarlo
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
 
-// Clave para guardar los datos en el dispositivo
 const ADMIN_RESERVAS_CACHE = "@admin_reservas_cache";
 
 export default function GestionReservasScreen() {
+
   const [reservas, setReservas] = useState([]);
   const [filtradas, setFiltradas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,30 +29,39 @@ export default function GestionReservasScreen() {
   const cargarTodasLasReservas = async () => {
     try {
       setLoading(true);
-      
-      // 1. Intentamos traer datos frescos del servidor
+
       const { data } = await api.get("/reservas");
-      
-      // 2. Si hay éxito, guardamos en el caché para el futuro
+
       setReservas(data);
       setFiltradas(data);
-      await AsyncStorage.setItem(ADMIN_RESERVAS_CACHE, JSON.stringify(data));
+
+      await AsyncStorage.setItem(
+        ADMIN_RESERVAS_CACHE,
+        JSON.stringify(data)
+      );
+
       setIsOffline(false);
 
     } catch (error) {
-      console.error("Error cargando reservas:", error);
-      
-      // 3. SI FALLA (Por falta de internet), intentamos cargar del caché
+
       const cachedData = await AsyncStorage.getItem(ADMIN_RESERVAS_CACHE);
+
       if (cachedData) {
         const parsedData = JSON.parse(cachedData);
+
         setReservas(parsedData);
         setFiltradas(parsedData);
+
         setIsOffline(true);
-        Alert.alert("Aviso", "Sin conexión. Mostrando datos guardados localmente.");
+
+        Alert.alert(
+          "Sin conexión",
+          "Mostrando datos guardados"
+        );
       } else {
-        Alert.alert("Error", "No hay conexión ni datos guardados.");
+        Alert.alert("Error", "No hay datos disponibles");
       }
+
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -63,50 +74,109 @@ export default function GestionReservasScreen() {
 
   const handleSearch = (text) => {
     setBusqueda(text);
+
     const lowerText = text.toLowerCase();
-    const resultado = reservas.filter(r =>
-      r.usuario?.nombre_completo.toLowerCase().includes(lowerText) ||
-      r.vuelo?.destino.toLowerCase().includes(lowerText) ||
+
+    const resultado = reservas.filter((r) =>
+      r.usuario?.nombre_completo?.toLowerCase().includes(lowerText) ||
+      r.vuelo?.destino?.toLowerCase().includes(lowerText) ||
       r.id_reserva.toString().includes(lowerText)
     );
+
     setFiltradas(resultado);
   };
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
+
+      {/* HEADER */}
       <View style={styles.cardHeader}>
+
         <View>
-          <Text style={styles.reservaId}>Reserva #{item.id_reserva}</Text>
-          <Text style={styles.clienteName}>👤 {item.usuario?.nombre_completo}</Text>
-          <Text style={styles.clienteEmail}>{item.usuario?.email}</Text>
+
+          <Text style={styles.reservaId}>
+            <Ionicons name="document-text-outline" size={14} /> Reserva #{item.id_reserva}
+          </Text>
+
+          <Text style={styles.clienteName}>
+            <Ionicons name="person-outline" size={14} /> {item.usuario?.nombre_completo}
+          </Text>
+
+          <Text style={styles.clienteEmail}>
+            <Ionicons name="mail-outline" size={14} /> {item.usuario?.email}
+          </Text>
         </View>
-        <View style={[styles.badge, { backgroundColor: item.estado === 'PAGADA' ? '#D1FAE5' : '#FEF3C7' }]}>
-          <Text style={[styles.badgeText, { color: item.estado === 'PAGADA' ? '#065F46' : '#92400E' }]}>
+
+        <View style={[
+          styles.badge,
+          {
+            backgroundColor:
+              item.estado === "PAGADA" ? "#D1FAE5" : "#FEF3C7"
+          }
+        ]}>
+
+          <Text style={[
+            styles.badgeText,
+            {
+              color:
+                item.estado === "PAGADA" ? "#065F46" : "#92400E"
+            }
+          ]}>
             {item.estado}
           </Text>
+
         </View>
+
       </View>
+
       <View style={styles.divider} />
+
+      {/* VUELO */}
       <View style={styles.vueloInfo}>
+
         <Text style={styles.vueloText}>
-          ✈️ {item.vuelo?.origen} ➔ {item.vuelo?.destino}
+          <Ionicons name="airplane-outline" size={14} /> {" "}
+          {item.vuelo?.origen} ➜ {item.vuelo?.destino}
         </Text>
+
         <Text style={styles.vueloDetalle}>
-          Fecha: {item.vuelo?.fecha_salida} | {item.vuelo?.hora_salida}
+          <Ionicons name="calendar-outline" size={14} /> {" "}
+          {item.vuelo?.fecha_salida} | {item.vuelo?.hora_salida}
         </Text>
+
       </View>
+
+      {/* PASAJEROS */}
       <View style={styles.pasajerosContainer}>
-        <Text style={styles.pasajerosTitle}>Pasajeros registrados:</Text>
+
+        <Text style={styles.pasajerosTitle}>
+          <Ionicons name="people-outline" size={14} /> Pasajeros
+        </Text>
+
         {item.pasajeros?.map((p, idx) => (
           <Text key={idx} style={styles.pasajeroTag}>
-            • {p.nombre_completo} (Asiento: {p.asiento})
+            <Ionicons name="person-circle-outline" size={14} /> {" "}
+            {p.nombre_completo} (Asiento: {p.asiento})
           </Text>
         ))}
+
       </View>
+
+      {/* FOOTER */}
       <View style={styles.cardFooter}>
-        <Text style={styles.fechaReserva}>Realizada el: {new Date(item.fecha_reserva).toLocaleDateString()}</Text>
-        <Text style={styles.totalText}>Total: ${item.total}</Text>
+
+        <Text style={styles.fechaReserva}>
+          <Ionicons name="time-outline" size={14} /> {" "}
+          {new Date(item.fecha_reserva).toLocaleDateString()}
+        </Text>
+
+        <Text style={styles.totalText}>
+          <Ionicons name="cash-outline" size={14} /> {" "}
+          ${item.total}
+        </Text>
+
       </View>
+
     </View>
   );
 
@@ -120,19 +190,20 @@ export default function GestionReservasScreen() {
 
   return (
     <View style={styles.container}>
+
       <Text style={styles.mainTitle}>Panel de Reservas</Text>
-      
-      {/* Indicador de modo offline */}
+
       {isOffline && (
         <View style={styles.offlineBanner}>
-          <Text style={styles.offlineText}>Estás en modo offline (Datos antiguos)</Text>
+          <Text style={styles.offlineText}>
+            Sin conexión - datos locales
+          </Text>
         </View>
       )}
 
       <TextInput
         style={styles.searchBar}
-        placeholder="Buscar por cliente, destino o ID..."
-        placeholderTextColor="#888"
+        placeholder="Buscar reservas..."
         value={busqueda}
         onChangeText={handleSearch}
       />
@@ -142,10 +213,17 @@ export default function GestionReservasScreen() {
         keyExtractor={(item) => item.id_reserva.toString()}
         renderItem={renderItem}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); cargarTodasLasReservas(); }} tintColor="white" />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              cargarTodasLasReservas();
+              
+            }}
+          />
         }
-        ListEmptyComponent={<Text style={styles.emptyText}>No se encontraron reservas.</Text>}
       />
+
     </View>
   );
 }

@@ -17,6 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function MisReservasScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -80,127 +81,187 @@ export default function MisReservasScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.homeBtn} onPress={irAHome}>
-          <Text style={styles.homeBtnText}>🏠 Inicio</Text>
-        </TouchableOpacity>
-        <View style={styles.titleContainer}>
-           <Text style={styles.logo}>Mis Viajes</Text>
-           <Text style={styles.subtitle}>Tu historial de abordaje</Text>
-        </View>
+  <View style={styles.container}>
+
+    {/* HEADER */}
+    <View style={styles.header}>
+
+
+      <View style={styles.titleContainer}>
+        <Text style={styles.logo}>
+          <Ionicons name="airplane-outline" size={18} color="#fff" /> Mis Viajes
+        </Text>
+
+        <Text style={styles.subtitle}>
+          <Ionicons name="time-outline" size={14} color="#9CA3AF" /> Tu historial de abordaje
+        </Text>
       </View>
 
-      {reservas.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Aún no tienes vuelos reservados.</Text>
-          <TouchableOpacity style={styles.btnExplorar} onPress={irAHome}>
-            <Text style={styles.btnText}>Explorar Vuelos</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <FlatList
-          data={reservas}
-          keyExtractor={(item) => item.id_reserva.toString()}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl 
-                refreshing={isRefetching} 
-                onRefresh={refetch} 
-                tintColor={COLORS.white} 
-            />
-          }
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.route}>
-                  {item.vuelo?.origen} ✈️ {item.vuelo?.destino}
-                </Text>
-                <View style={[
-                  styles.statusBadge,
-                  { backgroundColor: item.estado === 'PENDIENTE' ? '#FEF3C7' : '#D1FAE5' }
-                ]}>
-                  <Text style={[
-                    styles.statusText,
-                    { color: item.estado === 'PENDIENTE' ? '#92400E' : '#065F46' }
-                  ]}>
-                    {item.estado}
-                  </Text>
-                </View>
-              </View>
+    </View>
 
-              <Text style={styles.date}>
-                📅 {item.vuelo?.fecha_salida || item.vuelo?.fecha} | ⏰ {item.vuelo?.hora_salida || item.vuelo?.hora}
+    {/* EMPTY STATE */}
+    {reservas.length === 0 ? (
+      <View style={styles.emptyContainer}>
+
+        <Text style={styles.emptyText}>
+          <Ionicons name="sad-outline" size={18} color="#fff" /> Aún no tienes vuelos reservados.
+        </Text>
+
+        <TouchableOpacity style={styles.btnExplorar} onPress={irAHome}>
+          <Text style={styles.btnText}>
+            <Ionicons name="search-outline" size={16} color="#fff" /> Explorar Vuelos
+          </Text>
+        </TouchableOpacity>
+
+      </View>
+    ) : (
+      <FlatList
+        data={reservas}
+        keyExtractor={(item) => item.id_reserva.toString()}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor={COLORS.white}
+          />
+        }
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+
+            {/* HEADER CARD */}
+            <View style={styles.cardHeader}>
+              <Text style={styles.route}>
+                <Ionicons name="airplane-outline" size={16} color="#111" />{" "}
+                {item.vuelo?.origen} ➜ {item.vuelo?.destino}
               </Text>
 
-              <View style={styles.divider} />
-
-              <Text style={styles.sectionTitle}>Pasajeros:</Text>
-              {item.pasajeros?.map((p, index) => (
-                <View key={index} style={styles.pasajeroRow}>
-                  <Text style={styles.pasajeroName}>👤 {p.nombre_completo}</Text>
-                  <Text style={styles.asientoText}>Asiento: {p.asiento}</Text>
-                </View>
-              ))}
-
-              <View style={styles.footerCard}>
-                <View>
-                  <Text style={styles.totalLabel}>{item.estado === 'PAGADA' ? 'Total Pagado:' : 'Total a Pagar:'}</Text>
-                  {/* PRECIO FORMATEADO CON DECIMALES */}
-                  <Text style={styles.price}>$ {parseFloat(item.total).toFixed(2)}</Text>
-                </View>
-
-                {item.estado === 'PENDIENTE' ? (
-                  <TouchableOpacity
-                    style={styles.btnPagar}
-                    onPress={() => navigation.navigate("MetodoPago", { reserva: item })}
-                  >
-                    <Text style={styles.btnText}>Pagar Ahora</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    style={styles.btnVerQR}
-                    onPress={() => abrirTicket(item)}
-                  >
-                    <Text style={styles.btnText}>Ver Ticket</Text>
-                  </TouchableOpacity>
-                )}
+              <View style={[
+                styles.statusBadge,
+                { backgroundColor: item.estado === 'PENDIENTE' ? '#FEF3C7' : '#D1FAE5' }
+              ]}>
+                <Text style={[
+                  styles.statusText,
+                  { color: item.estado === 'PENDIENTE' ? '#92400E' : '#065F46' }
+                ]}>
+                  {item.estado}
+                </Text>
               </View>
             </View>
-          )}
-        />
-      )}
 
-      {/* MODAL QR */}
-      <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Boarding Pass</Text>
-            <Text style={styles.modalRoute}>
-              {qrSeleccionado?.vuelo?.origen} ➔ {qrSeleccionado?.vuelo?.destino}
+            {/* FECHA */}
+            <Text style={styles.date}>
+              <Ionicons name="calendar-outline" size={14} color="#6B7280" />{" "}
+              {item.vuelo?.fecha_salida || item.vuelo?.fecha} |{" "}
+              <Ionicons name="time-outline" size={14} color="#6B7280" />{" "}
+              {item.vuelo?.hora_salida || item.vuelo?.hora}
             </Text>
 
-            <View style={styles.qrContainer}>
-              {qrSeleccionado?.codigo_qr && (
-                <QRCode
-                  value={qrSeleccionado.codigo_qr}
-                  size={200}
-                />
+            <View style={styles.divider} />
+
+            {/* PASAJEROS */}
+            <Text style={styles.sectionTitle}>
+              <Ionicons name="people-outline" size={14} /> Pasajeros
+            </Text>
+
+            {item.pasajeros?.map((p, index) => (
+              <View key={index} style={styles.pasajeroRow}>
+                <Text style={styles.pasajeroName}>
+                  <Ionicons name="person-outline" size={14} /> {p.nombre_completo}
+                </Text>
+
+                <Text style={styles.asientoText}>
+                  <Ionicons name="id-card-outline" size={14} /> Asiento: {p.asiento}
+                </Text>
+              </View>
+            ))}
+
+            {/* FOOTER */}
+            <View style={styles.footerCard}>
+
+              <View>
+                <Text style={styles.totalLabel}>
+                  <Ionicons name="cash-outline" size={14} />{" "}
+                  {item.estado === 'PAGADA' ? 'Total Pagado:' : 'Total a Pagar:'}
+                </Text>
+
+                <Text style={styles.price}>
+                  $ {parseFloat(item.total).toFixed(2)}
+                </Text>
+              </View>
+
+              {item.estado === 'PENDIENTE' ? (
+                <TouchableOpacity
+                  style={styles.btnPagar}
+                  onPress={() => navigation.navigate("MetodoPago", { reserva: item })}
+                >
+                  <Text style={styles.btnText}>
+                    <Ionicons name="card-outline" size={14} /> Pagar
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.btnVerQR}
+                  onPress={() => abrirTicket(item)}
+                >
+                  <Text style={styles.btnText}>
+                    <Ionicons name="qr-code-outline" size={14} /> Ticket
+                  </Text>
+                </TouchableOpacity>
               )}
+
             </View>
 
-            <Text style={styles.qrCodeString}>{qrSeleccionado?.codigo_qr}</Text>
-            <Text style={styles.helperText}>Presenta este QR en la puerta de embarque</Text>
-
-            <TouchableOpacity style={styles.btnClose} onPress={() => setModalVisible(false)}>
-              <Text style={styles.btnCloseText}>Cerrar</Text>
-            </TouchableOpacity>
           </View>
+        )}
+      />
+    )}
+
+    {/* MODAL QR */}
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => setModalVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+
+          <Text style={styles.modalTitle}>
+            <Ionicons name="ticket-outline" size={18} /> Boarding Pass
+          </Text>
+
+          <Text style={styles.modalRoute}>
+            {qrSeleccionado?.vuelo?.origen} ➔ {qrSeleccionado?.vuelo?.destino}
+          </Text>
+
+          <View style={styles.qrContainer}>
+            {qrSeleccionado?.codigo_qr && (
+              <QRCode value={qrSeleccionado.codigo_qr} size={200} />
+            )}
+          </View>
+
+          <Text style={styles.qrCodeString}>
+            <Ionicons name="barcode-outline" size={14} /> {qrSeleccionado?.codigo_qr}
+          </Text>
+
+          <Text style={styles.helperText}>
+            <Ionicons name="information-circle-outline" size={14} /> Presenta este QR en embarque
+          </Text>
+
+          <TouchableOpacity style={styles.btnClose} onPress={() => setModalVisible(false)}>
+            <Text style={styles.btnCloseText}>
+              <Ionicons name="close-outline" size={16} /> Cerrar
+            </Text>
+          </TouchableOpacity>
+
         </View>
-      </Modal>
-    </View>
-  );
+      </View>
+    </Modal>
+
+  </View>
+);
 }
 
 const styles = StyleSheet.create({

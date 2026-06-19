@@ -2,18 +2,22 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-nati
 import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { COLORS } from "../../styles/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
 
   return (
     <View style={styles.container}>
-      {/* HEADER PERSONALIZADO */}
+      {/* HEADER */}
       <View style={styles.header}>
         <View>
           <Text style={styles.brand}>TravelHub</Text>
-          <Text style={styles.roleBadge}>{user?.rol === 'ADMIN' ? 'Panel de Control' : 'Explorador'}</Text>
+          <Text style={styles.roleBadge}>
+            {user?.rol === "ADMIN" ? "Panel de Control" : "Explorador"}
+          </Text>
         </View>
+
         <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
           <Text style={styles.logoutText}>Salir</Text>
         </TouchableOpacity>
@@ -23,22 +27,22 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.welcome}>
           Bienvenid@,{"\n"}
           <Text style={styles.userName}>
-            {user?.rol === 'ADMIN' ? 'Administrador' : (user?.nombre || 'Usuario')}
+            {user?.rol === "ADMIN" ? "Administrador" : user?.nombre || "Usuario"}
           </Text>
         </Text>
 
-        {/* --- SECCIÓN ADMINISTRADOR --- */}
+        {/* ================= ADMIN ================= */}
         {user?.rol === "ADMIN" && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Panel de Control</Text>
 
-            {/* GESTIÓN DE VUELOS */}
+            {/* VUELOS */}
             <TouchableOpacity
               style={[styles.card, styles.adminCard]}
               onPress={() => navigation.navigate("AdminVuelos")}
             >
               <View style={styles.iconCircleAdmin}>
-                <Text style={{ fontSize: 24 }}>🛫</Text>
+                <Ionicons name="airplane-outline" size={24} color="#2563eb" />
               </View>
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>Gestionar Vuelos</Text>
@@ -46,13 +50,13 @@ export default function HomeScreen({ navigation }) {
               </View>
             </TouchableOpacity>
 
-            {/* VALIDAR QR */}
+            {/* QR */}
             <TouchableOpacity
               style={[styles.card, styles.adminCard]}
               onPress={() => navigation.navigate("ValidarQR")}
             >
               <View style={styles.iconCircleAdmin}>
-                <Text style={{ fontSize: 24 }}>📸</Text>
+                <Ionicons name="qr-code-outline" size={24} color="#16a34a" />
               </View>
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>Validar Código QR</Text>
@@ -60,37 +64,37 @@ export default function HomeScreen({ navigation }) {
               </View>
             </TouchableOpacity>
 
-            {/* GESTIÓN DE RESERVAS */}
+            {/* RESERVAS */}
             <TouchableOpacity
               style={[styles.card, styles.adminCard]}
               onPress={() => navigation.navigate("GestionReservas")}
             >
               <View style={styles.iconCircleAdmin}>
-                <Text style={{ fontSize: 24 }}>📋</Text>
+                <Ionicons name="document-text-outline" size={24} color="#f59e0b" />
               </View>
               <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>Ver Todas las Reservas</Text>
-                <Text style={styles.cardText}>Listado global de pasajeros y pagos</Text>
+                <Text style={styles.cardTitle}>Ver Reservas</Text>
+                <Text style={styles.cardText}>Listado global de pasajeros</Text>
               </View>
             </TouchableOpacity>
 
-            {/* REGISTRAR OTRO ADMIN - AHORA DENTRO DE LA SECCIÓN */}
+            {/* ADMIN */}
             <TouchableOpacity
               style={[styles.card, styles.adminCard]}
               onPress={() => navigation.navigate("Register", { isAdminCreator: true })}
             >
               <View style={styles.iconCircleAdmin}>
-                <Text style={{ fontSize: 24 }}>🛡️</Text>
+                <Ionicons name="shield-checkmark-outline" size={24} color="#7c3aed" />
               </View>
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>Registrar Administrador</Text>
-                <Text style={styles.cardText}>Dar acceso al panel a nuevo personal</Text>
+                <Text style={styles.cardText}>Acceso al panel</Text>
               </View>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* --- SECCIÓN USUARIO (CLIENTE) --- */}
+        {/* ================= USER ================= */}
         {user?.rol === "USER" && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Tus Viajes</Text>
@@ -100,7 +104,7 @@ export default function HomeScreen({ navigation }) {
               onPress={() => navigation.navigate("BuscarVuelos")}
             >
               <View style={styles.iconCircle}>
-                <Text style={{ fontSize: 24 }}>✈️</Text>
+                <Ionicons name="airplane-outline" size={24} color="#2563eb" />
               </View>
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>Buscar vuelos</Text>
@@ -113,29 +117,30 @@ export default function HomeScreen({ navigation }) {
               onPress={() => navigation.navigate("MisReservas")}
             >
               <View style={styles.iconCircle}>
-                <Text style={{ fontSize: 24 }}>📅</Text>
+                <Ionicons name="calendar-outline" size={24} color="#f97316" />
               </View>
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>Mis reservas</Text>
-                <Text style={styles.cardText}>Revisa tus tickets y códigos QR</Text>
+                <Text style={styles.cardText}>Revisa tus tickets</Text>
               </View>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* --- SECCIÓN COMÚN --- */}
+        {/* ================= PERFIL ================= */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ajustes</Text>
+
           <TouchableOpacity
             style={styles.card}
             onPress={() => navigation.navigate("Perfil")}
           >
             <View style={styles.iconCircle}>
-              <Text style={{ fontSize: 24 }}>👤</Text>
+              <Ionicons name="person-outline" size={24} color="#0ea5e9" />
             </View>
             <View style={styles.cardContent}>
               <Text style={styles.cardTitle}>Mi Perfil</Text>
-              <Text style={styles.cardText}>Puntos acumulados y datos personales</Text>
+              <Text style={styles.cardText}>Datos personales y puntos</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -143,6 +148,8 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 }
+
+/* ================= ESTILOS ================= */
 
 const styles = StyleSheet.create({
   container: {
@@ -167,13 +174,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 1,
   },
   logoutBtn: {
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: "rgba(255,255,255,0.1)",
   },
   logoutText: {
     color: COLORS.white,
@@ -183,7 +189,6 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 22,
     marginBottom: 30,
-    lineHeight: 30,
   },
   userName: {
     fontWeight: "bold",
@@ -198,7 +203,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 12,
     opacity: 0.6,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   card: {
     backgroundColor: COLORS.white,
@@ -208,10 +213,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 15,
     elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   adminCard: {
     borderLeftWidth: 6,
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 15,
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: "#F3F4F6",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 15,
@@ -230,7 +231,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 15,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: "#DBEAFE",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 15,
@@ -246,6 +247,5 @@ const styles = StyleSheet.create({
   cardText: {
     color: "#6B7280",
     fontSize: 13,
-    marginTop: 2,
   },
 });

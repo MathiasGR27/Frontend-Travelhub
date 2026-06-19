@@ -3,10 +3,13 @@ import {
   View, Text, StyleSheet, TextInput, FlatList,
   TouchableOpacity, ActivityIndicator
 } from "react-native";
+
 import api from "../../services/api";
 import { COLORS } from "../../styles/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function BuscarVuelosScreen({ navigation }) {
+
   const [vuelos, setVuelos] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -23,6 +26,7 @@ export default function BuscarVuelosScreen({ navigation }) {
   const handleBuscar = async () => {
     try {
       setLoading(true);
+
       const params = {
         origen: origen.trim() || undefined,
         destino: destino.trim() || undefined,
@@ -30,10 +34,13 @@ export default function BuscarVuelosScreen({ navigation }) {
         minPrecio: minPrecio || undefined,
         maxPrecio: maxPrecio || undefined
       };
+
       const response = await api.get("/vuelos/buscar", { params });
       setVuelos(response.data);
+
     } catch (error) {
-      console.error("Error buscando vuelos:", error);
+      console.log("Error:", error.message);
+
     } finally {
       setLoading(false);
     }
@@ -44,125 +51,227 @@ export default function BuscarVuelosScreen({ navigation }) {
       style={styles.card}
       onPress={() => navigation.navigate("Pasajero", { vuelo: item })}
     >
+
+      {/* RUTA */}
       <View style={styles.cardRow}>
-        <Text style={styles.ciudades}>{item.origen} ➔ {item.destino}</Text>
-        <Text style={styles.precio}>${item.precio}</Text>
+        <Text style={styles.ciudades}>
+          <Ionicons name="airplane-outline" size={14} /> {" "}
+          {item.origen} ➜ {item.destino}
+        </Text>
+
+        <Text style={styles.precio}>
+          <Ionicons name="cash-outline" size={14} /> ${item.precio}
+        </Text>
       </View>
+
       <View style={styles.divider} />
-      <Text style={styles.detalles}>📅 {item.fecha_salida}  •  ⏰ {item.hora_salida}</Text>
+
+      {/* FECHA */}
+      <Text style={styles.detalles}>
+        <Ionicons name="calendar-outline" size={14} /> {" "}
+        {item.fecha_salida} • {item.hora_salida}
+      </Text>
+
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Explorar Vuelos</Text>
 
+      {/* HEADER */}
+      <View style={styles.header}>
+        <Ionicons name="search-outline" size={24} color="#fff" />
+        <Text style={styles.title}>Explorar Vuelos</Text>
+      </View>
+
+      {/* FILTROS */}
       <View style={styles.filterSection}>
-        <TextInput
-          style={styles.inputFull}
-          placeholder="Ciudad de Origen"
-          placeholderTextColor="#888" 
-          value={origen}
-          onChangeText={setOrigen}
-        />
-        <TextInput
-          style={styles.inputFull}
-          placeholder="Ciudad de Destino"
-          placeholderTextColor="#888" 
-          value={destino}
-          onChangeText={setDestino}
-        />
 
-        <View style={styles.row}>
+        <View style={styles.inputRow}>
+          <Ionicons name="location-outline" size={18} />
           <TextInput
-            style={[styles.inputHalf, { flex: 2 }]}
-            placeholder="Fecha"
-            placeholderTextColor="#888" 
-            value={fecha}
-            onChangeText={setFecha}
-          />
-          <TextInput
-            style={styles.inputHalf}
-            placeholder="Min $"
-            placeholderTextColor="#888"
-            keyboardType="numeric"
-            value={minPrecio}
-            onChangeText={setMinPrecio}
-          />
-          <TextInput
-            style={styles.inputHalf}
-            placeholder="Max $"
-            placeholderTextColor="#888"
-            keyboardType="numeric"
-            value={maxPrecio}
-            onChangeText={setMaxPrecio}
+            style={styles.input}
+            placeholder="Ciudad de Origen"
+            value={origen}
+            onChangeText={setOrigen}
           />
         </View>
 
+        <View style={styles.inputRow}>
+          <Ionicons name="navigate-outline" size={18} />
+          <TextInput
+            style={styles.input}
+            placeholder="Ciudad de Destino"
+            value={destino}
+            onChangeText={setDestino}
+          />
+        </View>
+
+        <View style={styles.row}>
+
+          <View style={styles.inputSmall}>
+            <Ionicons name="calendar-outline" size={16} />
+            <TextInput
+              style={styles.input}
+              placeholder="Fecha"
+              value={fecha}
+              onChangeText={setFecha}
+            />
+          </View>
+
+          <View style={styles.inputSmall}>
+            <Ionicons name="cash-outline" size={16} />
+            <TextInput
+              style={styles.input}
+              placeholder="Min"
+              keyboardType="numeric"
+              value={minPrecio}
+              onChangeText={setMinPrecio}
+            />
+          </View>
+
+          <View style={styles.inputSmall}>
+            <Ionicons name="cash-outline" size={16} />
+            <TextInput
+              style={styles.input}
+              placeholder="Max"
+              keyboardType="numeric"
+              value={maxPrecio}
+              onChangeText={setMaxPrecio}
+            />
+          </View>
+
+        </View>
+
+        {/* BOTÓN */}
         <TouchableOpacity style={styles.btnBuscar} onPress={handleBuscar}>
-          <Text style={styles.btnText}>🔍 Aplicar Filtros</Text>
+          <Ionicons name="search" size={18} color="white" />
+          <Text style={styles.btnText}>Buscar vuelos</Text>
         </TouchableOpacity>
+
       </View>
 
+      {/* LISTA */}
       {loading ? (
-        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       ) : (
         <FlatList
           data={vuelos}
           keyExtractor={(item) => item.id_vuelo.toString()}
           renderItem={renderVuelo}
-          ListEmptyComponent={
-            <Text style={styles.empty}>No hay vuelos que coincidan con tu búsqueda.</Text>
-          }
-          contentContainerStyle={{ paddingBottom: 20 }}
         />
       )}
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.primaryDark, padding: 20 },
-  title: { color: 'white', fontSize: 24, fontWeight: 'bold', marginTop: 40, marginBottom: 15 },
-  filterSection: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 15,
-    borderRadius: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)'
-  },
-  inputFull: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 10,
-    fontSize: 14,
-    color: '#000' // <-- CORREGIDO
-  },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
-  inputHalf: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 12,
+
+  container: {
     flex: 1,
-    marginHorizontal: 2,
-    fontSize: 13,
-    color: '#000' // <-- CORREGIDO
+    backgroundColor: COLORS.primaryDark,
+    padding: 20
   },
-  btnBuscar: {
-    backgroundColor: COLORS.primary,
+
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 40,
+    marginBottom: 15
+  },
+
+  title: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "bold"
+  },
+
+  filterSection: {
+    backgroundColor: "#fff",
     padding: 15,
-    borderRadius: 12,
-    alignItems: 'center',
-    elevation: 3
+    borderRadius: 15,
+    marginBottom: 20
   },
-  btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  card: { backgroundColor: 'white', padding: 18, borderRadius: 15, marginBottom: 15 },
-  cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  ciudades: { fontSize: 17, fontWeight: 'bold', color: COLORS.primaryDark },
-  precio: { fontSize: 19, fontWeight: 'bold', color: '#10B981' },
-  divider: { height: 1, backgroundColor: '#F3F4F6', marginVertical: 10 },
-  detalles: { color: '#6B7280', fontSize: 13 },
-  empty: { color: 'white', textAlign: 'center', marginTop: 30, opacity: 0.5 }
+
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F3F4F6",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+    gap: 5
+  },
+
+  inputSmall: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F3F4F6",
+    padding: 10,
+    borderRadius: 10,
+    marginHorizontal: 2,
+    gap: 5
+  },
+
+  input: {
+    flex: 1,
+    marginLeft: 5,
+    color: "#111827"
+  },
+
+  row: {
+    flexDirection: "row"
+  },
+
+  btnBuscar: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: COLORS.primary,
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 10
+  },
+
+  btnText: {
+    color: "white",
+    fontWeight: "bold"
+  },
+
+  card: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 15,
+    marginBottom: 10
+  },
+
+  cardRow: {
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
+
+  ciudades: {
+    fontWeight: "bold",
+    color: "#111827"
+  },
+
+  precio: {
+    fontWeight: "bold",
+    color: "#10B981"
+  },
+
+  detalles: {
+    marginTop: 5,
+    color: "#6B7280"
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: "#E5E7EB",
+    marginVertical: 8
+  }
 });

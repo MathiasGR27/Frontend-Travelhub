@@ -4,21 +4,21 @@ import {
   View, Image, ActivityIndicator
 } from "react-native";
 import * as ImagePicker from 'expo-image-picker';
-import { AuthContext } from "../../context/AuthContext"; // Importante
+import { AuthContext } from "../../context/AuthContext";
 import { COLORS } from "../../styles/constants/colors";
 import api from "../../services/api";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 export default function PerfilScreen({ navigation }) {
-  // Extraemos actualizarDatosUsuario del contexto
+
   const { user, logout, actualizarDatosUsuario } = useContext(AuthContext);
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
+
   const IMAGE_BASE = "http://192.168.5.45:4001";
 
   useEffect(() => {
-    if (user?.foto) {
-      setImage(user.foto);
-    }
+    if (user?.foto) setImage(user.foto);
   }, [user]);
 
   const pickImage = async () => {
@@ -43,128 +43,131 @@ export default function PerfilScreen({ navigation }) {
   const subirFoto = async (uri) => {
     const userId = user?.id;
 
-    if (!userId) {
-      Alert.alert("Error", "No se encontró el ID del usuario.");
-      return;
-    }
+    if (!userId) return;
 
     try {
       setUploading(true);
+
       const formData = new FormData();
-      formData.append('foto', {
-        uri: uri,
+      formData.append("foto", {
+        uri,
         name: `avatar_${userId}.jpg`,
-        type: 'image/jpeg',
+        type: "image/jpeg",
       });
 
-      const { data } = await api.post(`/usuarios/update-avatar/${userId}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const { data } = await api.post(
+        `/usuarios/update-avatar/${userId}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
       if (data.foto) {
-        // 1. Actualizamos el estado local de esta pantalla
         setImage(data.foto);
-
-        // 2. ACTUALIZAMOS EL CONTEXTO GLOBAL Y ASYNCSTORAGE
-        // Esto hace que la foto no se borre al navegar o reiniciar
         await actualizarDatosUsuario({ foto: data.foto });
-
-        Alert.alert("Éxito", "Foto de perfil actualizada correctamente.");
       }
     } catch (error) {
-      console.log(
-        "ERROR AXIOS:",
-        error.response?.data || error.message
-      );
-      Alert.alert("Error", "No se pudo subir la imagen al servidor.");
+      console.log(error);
+      Alert.alert("Error", "No se pudo subir la imagen");
     } finally {
       setUploading(false);
     }
   };
 
   const renderAvatar = () => {
-    // Si hay imagen en el estado local o en el usuario del contexto
     const imagenAMostrar = image || user?.foto;
 
     if (imagenAMostrar) {
       return (
         <Image
-          source={{
-            uri: imagenAMostrar?.replace("http://192.168.5.45:4000", IMAGE_BASE)
-          }}
+          source={{ uri: imagenAMostrar?.replace("http://192.168.5.45:4000", IMAGE_BASE) }}
           style={styles.avatarImage}
-          onLoad={() => console.log("Imagen cargada correctamente")}
-          onError={(e) => console.log("ERROR IMAGEN:", e.nativeEvent)}
         />
       );
     }
 
-    const inicial = user?.nombre ? user.nombre.charAt(0).toUpperCase() : "U";
     return (
       <View style={styles.avatarPlaceholder}>
-        <Text style={styles.avatarInitial}>{inicial}</Text>
+        <Text style={styles.avatarInitial}>
+          {user?.nombre?.charAt(0)?.toUpperCase() || "U"}
+        </Text>
       </View>
     );
   };
 
-  const handleLogout = () => {
-    Alert.alert("Cerrar Sesión", "¿Deseas salir?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Salir", onPress: logout, style: "destructive" },
-    ]);
-  };
-
   return (
     <View style={styles.container}>
+
+      {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={{ color: 'white', fontSize: 20 }}>←</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={26} color="white" />
         </TouchableOpacity>
+
         <Text style={styles.logo}>Mi Perfil</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
 
+        {/* AVATAR */}
         <View style={styles.avatarSection}>
-          <TouchableOpacity onPress={pickImage} disabled={uploading}>
+          <TouchableOpacity onPress={pickImage}>
             <View style={styles.avatarWrapper}>
               {renderAvatar()}
+
               <View style={styles.editBadge}>
                 {uploading ? (
                   <ActivityIndicator size="small" color={COLORS.primary} />
                 ) : (
-                  <Text style={{ fontSize: 16 }}>📸</Text>
+                  <Ionicons name="camera" size={18} color="black" />
                 )}
               </View>
             </View>
           </TouchableOpacity>
-          <Text style={styles.userName}>{user?.nombre || "Usuario TravelHub"}</Text>
-          <Text style={styles.userRoleBadge}>{user?.rol || 'EXPLORADOR'}</Text>
+
+          <Text style={styles.userName}>{user?.nombre}</Text>
+
+          <Text style={styles.userRoleBadge}>
+            {user?.rol}
+          </Text>
         </View>
 
+        {/* PUNTOS */}
         {user?.rol === "USER" && (
           <View style={styles.pointsCard}>
-            <Text style={styles.pointsTitle}>Mis Puntos Acumulados</Text>
-            <Text style={styles.pointsValue}>{user?.puntos || 0} ✨</Text>
+            <Text style={styles.pointsTitle}>Mis Puntos</Text>
+            <Text style={styles.pointsValue}>
+              {user?.puntos || 0} ✨
+            </Text>
           </View>
         )}
 
+        {/* INFO */}
         <View style={styles.card}>
-          <Text style={styles.cardSectionTitle}>Información de la cuenta</Text>
+          <Text style={styles.cardSectionTitle}>
+            Información de la cuenta
+          </Text>
+
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Correo Electrónico</Text>
+            <MaterialIcons name="email" size={18} color="#666" />
             <Text style={styles.infoValue}>{user?.email}</Text>
           </View>
-          <View style={styles.divider} />
+
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Teléfono de Contacto</Text>
-            <Text style={styles.infoValue}>{user?.telefono || "No disponible"}</Text>
+            <Ionicons name="call" size={18} color="#666" />
+            <Text style={styles.infoValue}>
+              {user?.telefono || "No disponible"}
+            </Text>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+        {/* LOGOUT */}
+        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+          <Ionicons name="log-out-outline" size={20} color="#F87171" />
+          <Text style={styles.logoutButtonText}>
+            Cerrar Sesión
+          </Text>
         </TouchableOpacity>
+
       </ScrollView>
     </View>
   );
